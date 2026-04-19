@@ -1,0 +1,62 @@
+{
+  "name": "create-g2rain-app",
+  "version": "0.1.0",
+  "description": "CLI to scaffold micro-frontend sub-apps from g2rain-app-template (Vue 3 + Vite + qiankun).",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/g2rain/g2rain-app-cli.git"
+  },
+  "homepage": "https://github.com/g2rain/g2rain-app-cli#readme",
+  "bugs": {
+    "url": "https://github.com/g2rain/g2rain/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "g2rain",
+    "cli",
+    "scaffold",
+    "vue",
+    "vite",
+    "qiankun",
+    "micro-frontend"
+  ],
+  "contributors": [
+    {
+      "name": "Jagger",
+      "email": "g2rain_developer@163.com",
+      "url": "https://www.g2rain.com/"
+    },
+    {
+      "name": "Alpha",
+      "url": "https://www.g2rain.com/"
+    }
+  ],
+  "type": "module",
+  "bin": {
+    "g2rain-app": "dist/index.js",
+    "create-g2rain-app": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "kleur": "^4.1.5",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.129",
+    "@types/fs-extra": "^11.0.4",
+    "@types/prompts": "^2.4.9",
+    "tsx": "^4.20.6",
+    "typescript": "5.4.5"
+  }
+}
+
