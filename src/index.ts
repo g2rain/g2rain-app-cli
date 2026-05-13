@@ -40,6 +40,7 @@ async function rewritePackageJson(targetDir: string, projectName: string) {
 
 async function replaceTemplatePlaceholders(targetDir: string, projectName: string) {
   const files = [
+    'build.sh',
     'lua/config.lua',
     'README.md',
     '.env',
@@ -63,19 +64,19 @@ async function replaceTemplatePlaceholders(targetDir: string, projectName: strin
 async function cloneTemplateFromGitHub(templateRoot: string): Promise<void> {
   const templateRepo = 'https://github.com/g2rain/g2rain-app-template';
   const templateDir = path.dirname(templateRoot);
-  
+
   console.log(kleur.cyan(`➜ Cloning template from ${templateRepo}...`));
-  
+
   try {
     // 确保模板目录的父目录存在
     await fs.ensureDir(templateDir);
-    
+
     // 使用 git clone 克隆仓库
     execSync(`git clone ${templateRepo} "${templateRoot}"`, {
       stdio: 'inherit',
       cwd: templateDir,
     });
-    
+
     console.log(kleur.green('✔ Template cloned successfully'));
   } catch (error: any) {
     console.error(kleur.red('✖ Failed to clone template from GitHub'));
@@ -109,7 +110,7 @@ async function main() {
         `⚠ Template not found at ${templateRoot}. Attempting to clone from GitHub...`,
       ),
     );
-    
+
     try {
       await cloneTemplateFromGitHub(templateRoot);
     } catch (error) {
