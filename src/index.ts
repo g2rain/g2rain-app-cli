@@ -25,6 +25,39 @@ const filterCopy = (src: string) => {
   return true;
 };
 
+function parseArgs(argv: string[]): CliArgs {
+  const args: CliArgs = {};
+  const rest = argv.slice(2);
+
+  for (let i = 0; i < rest.length; i++) {
+    const arg = rest[i];
+    if (arg === '--context-path' || arg === '--context_path') {
+      args.contextPath = rest[++i];
+    } else if (arg.startsWith('-')) {
+      continue;
+    } else if (!args.projectName) {
+      args.projectName = arg;
+    } else if (!args.contextPath) {
+      args.contextPath = arg;
+    }
+  }
+
+  return args;
+}
+
+function deriveDefaultContextPath(projectName: string): string {
+  const stripped = projectName.replace(/^g2rain-/, '').replace(/-app$/, '');
+  return stripped || projectName;
+}
+
+function normalizeContextPath(input: string): string {
+  const normalized = input.trim().replace(/^\/+|\/+$/g, '');
+  if (!normalized) {
+    throw new Error('Context path cannot be empty');
+  }
+  return normalized;
+}
+
 async function ensureProjectName(initial?: string) {
   if (initial) return initial;
   const { name } = await prompts({
@@ -34,6 +67,23 @@ async function ensureProjectName(initial?: string) {
     initial: 'g2rain-new-app',
   });
   return name;
+}
+
+async function ensureContextPath(projectName: string, initial?: string) {
+  if (initial) return normalizeContextPath(initial);
+
+  const { contextPath } = await prompts({
+    type: 'text',
+    name: 'contextPath',
+    message: 'Context path (URL prefix, without leading slash)',
+    initial: deriveDefaultContextPath(projectName),
+  });
+
+  if (!contextPath) {
+    throw new Error('Context path is required');
+  }
+
+  return normalizeContextPath(contextPath);
 }
 
 async function copyTemplate(templateRoot: string, targetDir: string) {
@@ -48,8 +98,9 @@ async function rewritePackageJson(targetDir: string, projectName: string) {
   await fs.writeJson(pkgPath, pkg, { spaces: 2 });
 }
 
-async function replaceTemplatePlaceholders(targetDir: string, projectName: string) {
+async function replaceTemplatePlaceholders(targetDir: string, vars: TemplateVars) {
   const files = [
+    'build.sh',
     'lua/config.lua',
     'README.md',
     '.env',
@@ -58,34 +109,39 @@ async function replaceTemplatePlaceholders(targetDir: string, projectName: strin
     'src/runtime/env/index.ts',
   ];
 
+  const replacements: Record<string, string> = {
+    '{{PROJECT_NAME}}': vars.projectName,
+    '{{CONTEXT_PATH}}': vars.contextPath,
+  };
+
   await Promise.all(
     files.map(async (relativePath) => {
       const filePath = path.join(targetDir, relativePath);
       if (!(await fs.pathExists(filePath))) return;
 
-      const content = await fs.readFile(filePath, 'utf-8');
-      const replaced = content.replace(/\{\{PROJECT_NAME\}\}/g, projectName);
-      await fs.writeFile(filePath, replaced, 'utf-8');
-    })
+      let content = await fs.readFile(filePath, 'utf-8');
+      for (const [placeholder, value] of Object.entries(replacements)) {
+        content = content.split(placeholder).join(value);
+      }
+      await fs.writeFile(filePath, content, 'utf-8');
+    }),
   );
 }
 
 async function cloneTemplateFromGitHub(templateRoot: string): Promise<void> {
   const templateRepo = 'https://github.com/g2rain/g2rain-app-template';
   const templateDir = path.dirname(templateRoot);
-  
+
   console.log(kleur.cyan(`➜ Cloning template from ${templateRepo}...`));
-  
+
   try {
-    // 确保模板目录的父目录存在
     await fs.ensureDir(templateDir);
-    
-    // 使用 git clone 克隆仓库
+
     execSync(`git clone ${templateRepo} "${templateRoot}"`, {
       stdio: 'inherit',
       cwd: templateDir,
     });
-    
+
     console.log(kleur.green('✔ Template cloned successfully'));
   } catch (error: any) {
     console.error(kleur.red('✖ Failed to clone template from GitHub'));
@@ -97,9 +153,19 @@ async function cloneTemplateFromGitHub(templateRoot: string): Promise<void> {
 }
 
 async function main() {
-  const projectName = await ensureProjectName(process.argv[2]);
-  if (!projectName) {
-    console.error(kleur.red('✖ Project name is required'));
+  const cliArgs = parseArgs(process.argv);
+  let projectName: string | undefined;
+  let contextPath: string;
+
+  try {
+    projectName = await ensureProjectName(cliArgs.projectName);
+    if (!projectName) {
+      console.error(kleur.red('✖ Project name is required'));
+      process.exit(1);
+    }
+    contextPath = await ensureContextPath(projectName, cliArgs.contextPath);
+  } catch (error: any) {
+    console.error(kleur.red(`✖ ${error.message || 'Invalid arguments'}`));
     process.exit(1);
   }
 
@@ -119,7 +185,7 @@ async function main() {
         `⚠ Template not found at ${templateRoot}. Attempting to clone from GitHub...`,
       ),
     );
-    
+
     try {
       await cloneTemplateFromGitHub(templateRoot);
     } catch (error) {
@@ -140,9 +206,10 @@ async function main() {
   console.log(kleur.cyan(`➜ Using template: ${templateRoot}`));
   await copyTemplate(templateRoot, targetDir);
   await rewritePackageJson(targetDir, projectName);
-  await replaceTemplatePlaceholders(targetDir, projectName);
+  await replaceTemplatePlaceholders(targetDir, { projectName, contextPath });
 
   console.log(kleur.green(`\n✔ Project created at ${targetDir}`));
+  console.log(kleur.cyan(`  context path: /${contextPath}`));
   console.log('\nNext steps:');
   console.log(`  cd ${projectName}`);
   console.log('  npm install');
@@ -155,4 +222,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
