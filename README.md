@@ -1,210 +1,222 @@
+﻿<p align="center">
+  <img src="https://github.com/g2rain.png" alt="G2Rain" width="180" />
+</p>
+
 # g2rain-app-cli
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/Node-22%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-## 1. 徽标与状态标识
-- 当前项目面向 `Node.js 22+`
-- 当前构建方式以 `TypeScript + tsc` 为准
-- 当前分发形态为 `npm CLI`
-- 当前开源许可证为 `Apache 2.0`
+下一代AI软件开发范式，AI原生Agent平台，开源的企业级SaaS底座。
 
-## 2. 项目简介
-`g2rain-app-cli` 是 G2rain 平台面向微前端子应用的初始化 CLI，用于基于官方模板仓库 `g2rain-app-template` 快速创建子应用工程。它自身负责参数交互、模板定位、目录复制、占位符替换与项目初始化提示，而模板运行时的技术栈、目录约定和联调方式以模板仓库文档为准。
+前端应用创建脚手架，基于 g2rain-app-template 生成前端子应用工程；采集项目名称、Context Path 等初始化参数并完成模板替换
 
-## 3. 平台定位
+[官网](https://www.g2rain.com) · [Issues](https://github.com/g2rain/g2rain/issues) · [Discussions](https://github.com/g2rain/g2rain/discussions)
 
-`g2rain-app-cli` 位于 G2rain 平台工程化能力层，是平台前端子应用创建入口。  
-它主要服务于需要快速初始化微前端子应用的前端研发团队。  
-它负责把模板仓库按项目名与 context path 定制化复制出来，但不负责模板运行时能力本身。
+## 目录
 
-## 4. 核心能力
+- 项目简介
+- 平台定位
+- 业务域说明
+- 功能概览
+- 使用场景
+- 核心流程
+- 流程图
+- 技术栈
+- 环境要求
+- 快速开始
+- 配置说明
+- 构建与镜像
+- 代码质量与测试
+- 命令示例
+- 安全说明
+- 与关联仓库的关系
+- 模块说明
+- 职责边界
+- 常见问题
+- 关联仓库
+- 参与贡献
+- 许可证
+- 联系我们
+- 致谢
 
-- npm create 入口：支持 `npm create g2rain-app@latest`
-- CLI 双命令：暴露 `g2rain-app` 与 `create-g2rain-app`
-- 参数与交互：支持 positional 项目名、`--context-path`、交互输入
-- 模板定位：支持本地模板路径、同级模板目录与远程 GitHub 克隆回退
-- 占位符替换：自动注入项目名与 context path
-- 微前端 context path 推导：从项目名自动推导短路径默认值
+## 项目简介
 
-## 5. 技术栈
+前端应用创建脚手架，基于 g2rain-app-template 生成前端子应用工程；采集项目名称、Context Path 等初始化参数并完成模板替换
 
-- 语言：`TypeScript`
-- 运行时：`Node.js >=22`
-- 核心依赖：`fs-extra`、`prompts`、`kleur`
-- 构建工具：`tsc`
-- CLI 入口：`dist/index.js`
+## 平台定位
 
-## 6. 快速开始
-### 环境要求
+该仓库位于 g2rain 前端工程化工具链中，是用于创建前端子应用的脚手架工具。 它与 g2rain-app-template 等模板、应用或支撑仓库协同工作。 它主要服务于项目创建阶段，通过模板复制、参数采集与初始化配置生成可继续开发的前端工程，而不是运行时承载业务页面的应用本体。
 
-- `Node.js 22+`
-- `npm 10+` 或可兼容的现代 npm 版本
+## 业务域说明
 
-### 直接创建项目
+该仓库聚焦于 `前端项目初始化与模板生成`。
 
-```bash
-npm create g2rain-app@latest
+核心对象包括：
+- Context Path
+- 模板路径
+- 模板占位符
+- 生成后的前端子应用工程
+- 项目名称
+
+主要流程包括：
+- 项目初始化参数采集流程
+- 模板复制与占位符替换流程
+- 基于 g2rain-app-template 生成项目流程
+- Context Path 写入与初始化配置流程
+
+## 功能概览
+
+| 能力 | 说明 |
+| --- | --- |
+| 项目初始化 | 通过 CLI 收集项目名称、Context Path 等参数，生成标准前端子应用工程。 |
+| 模板复用 | 基于 g2rain-app-template 复制模板文件并执行占位符替换。 |
+| 本地调试与构建 | 提供脚手架本地开发与打包命令，便于维护生成逻辑。 |
+
+## 使用场景
+
+| 场景 | 说明 |
+| --- | --- |
+| 创建标准前端子应用 | 当团队需要快速创建符合 g2rain 微前端规范的 Vue3 + TypeScript 子应用时使用。 |
+| 统一 Context Path 与项目命名 | 当新应用需要接入 Shell、网关和部署路径时，由脚手架统一收集并写入项目参数。 |
+| 复用组织模板 | 当模板能力升级后，脚手架可继续复用 g2rain-app-template 作为标准工程基线。 |
+
+## 核心流程
+
+| 流程 | 关键步骤 | 代码线索 |
+| --- | --- | --- |
+| 项目创建流程 | 执行 CLI 命令 → 收集项目名称和 Context Path → 定位模板来源 → 复制模板文件 → 替换占位符 → 输出可运行前端工程 | package.json bin、prompt/input logic、template copy |
+
+## 流程图
+
+```mermaid
+flowchart TD
+  A[执行 g2rain 前端脚手架] --> B[输入项目名称与 Context Path]
+  B --> C[读取 g2rain-app-template]
+  C --> D[复制模板文件]
+  D --> E[替换项目占位符]
+  E --> F[生成标准前端子应用]
+  F --> G[安装依赖并启动开发服务]
 ```
 
-指定项目名：
+## 技术栈
 
-```bash
-npm create g2rain-app@latest my-app-name
-```
+| 类别 | 说明 |
+| --- | --- |
+| 运行时 | Node.js、npm |
+| 构建与类型 | typescript |
 
-指定 context path：
+## 环境要求
 
-```bash
-npm create g2rain-app@latest g2rain-cms-app -- --context-path cms
-```
+- Node.js >=22
+- npm
 
-### 使用 npx
+## 快速开始
 
-```bash
-npx create-g2rain-app my-project
-```
+| 步骤 | 命令或位置 | 说明 |
+| --- | --- | --- |
+| 安装依赖 | `npm install` | 根据 package.json 安装前端依赖。 |
+| 本地开发 | `npm run dev` | 以源码方式运行脚手架，便于调试项目生成流程。 |
+| 构建产物 | `npm run build` | 执行类型检查与前端构建，生成可发布产物。 |
+| 验证命令 | `g2rain-app` | 构建后可通过 CLI 命令验证脚手架入口是否可用。 |
 
-### 本地开发
+版本号以项目构建配置为准，当前识别为 `0.1.0`。
 
-```bash
-npm install
-npm run build
-npm run dev -- my-test-app cms
-```
+## 配置说明
 
-### 使用本地模板目录
+### 路由配置
 
-```powershell
-$env:G2RAIN_TEMPLATE_PATH="D:/path/to/g2rain-app-template"
-npm create g2rain-app@latest my-app
-```
+| 配置项 | 说明 |
+| --- | --- |
+| `Context Path` | 用于控制前端应用在平台或子路径下的访问基准路径。 |
 
-### 构建说明
+## 构建与镜像
 
-```bash
-npm run build
-```
+| 目标 | 命令 | 产物 | 说明 |
+| --- | --- | --- | --- |
+| 本地开发 | `npm run dev` | 本地开发服务 | 以源码方式运行脚手架，调试项目生成流程。 |
+| 前端产物 | `npm run build` | `dist` | 执行类型检查与 Vite/TypeScript 构建，生成可发布产物。 |
 
-构建产物输出到 `dist/`，CLI 实际执行入口为 `dist/index.js`。
+## 代码质量与测试
 
-## 7. 项目结构
+| 检查项 | 命令 | 说明 |
+| --- | --- | --- |
+| TypeScript 类型检查 | `npm run build` | 使用 TypeScript 约束前端代码类型。 |
 
-```text
-g2rain-app-cli/
-├── src/
-│   └── index.ts
-├── dist/
-├── package.json
-├── package-lock.json
-├── tsconfig.json
-├── README.md
-└── SECURITY.md
-```
+## 命令示例
 
-### 核心能力结构说明
+| 示例 | 方式 | 命令 | 说明 |
+| --- | --- | --- | --- |
+|  | 示例 | `g2rain-app` | 通过 package.json bin 暴露的命令入口创建 g2rain 前端应用。 |
+|  | 示例 | `create-g2rain-app` | 通过 package.json bin 暴露的命令入口创建 g2rain 前端应用。 |
 
-#### 1. `src/index.ts`：CLI 单入口实现
-- 解决问题：把前端子应用初始化需要的参数、模板和文件处理逻辑集中在一个轻量入口中
-- 核心逻辑：
-  - 解析项目名与 `--context-path`
-  - 在缺少参数时用 `prompts` 交互补全
-  - 解析模板目录并在缺失时克隆官方模板
-  - 复制模板并替换 `{{PROJECT_NAME}}`、`{{CONTEXT_PATH}}`
-- 典型用法：直接通过 `npm create`、`npx` 或本地 `node dist/index.js` 调用
+## 安全说明
 
-典型写法：
-```bash
-npm create g2rain-app@latest g2rain-cms-app -- --context-path cms
-```
+| 主题 | 说明 |
+| --- | --- |
+| 模板来源 | 脚手架生成项目时应使用可信模板来源，避免将未知脚本或配置写入新工程。 |
 
-#### 2. `package.json`：npm 分发与命令定义
-- 解决问题：让 CLI 能以标准 npm create 方式被使用
-- 核心逻辑：
-  - 包名采用 `create-g2rain-app`
-  - `bin` 同时暴露 `g2rain-app` 和 `create-g2rain-app`
-  - `engines.node` 限定 `>=22`
-- 典型用法：发布后通过 `npm create g2rain-app@latest` 直接调用
+## 与关联仓库的关系
 
-#### 3. 模板路径与远程回退机制
-- 解决问题：兼容本地开发、同级模板仓库协作和模板缺失场景
-- 核心逻辑：
-  - 优先读取 `G2RAIN_TEMPLATE_PATH`
-  - 其次使用同级 `g2rain-app-template`
-  - 找不到模板时自动 `git clone` 官方仓库
-- 典型使用场景：CLI 本地联调或发布后用户首次初始化项目
+本仓库作为前端工程初始化入口，与 g2rain-app-template 配合完成模板复制、参数替换与前端子应用工程生成。
 
-#### 4. context path 推导与占位替换
-- 解决问题：让微前端子应用默认获得合理的 URL 前缀和模板内配置值
-- 核心逻辑：
-  - 从项目名推导默认 context path
-  - 去除首尾斜杠并校验非空
-  - 在固定文件中写入项目名和 context path
-- 典型使用场景：生成 `g2rain-cms-app` 时自动推导 `cms`
+## 模块说明
 
-### 接入建议与边界
-- 如需了解模板目录结构、环境变量与运行方式，应以 `g2rain-app-template` 文档为准
-- `g2rain-app-cli` 更适合描述“如何创建项目”，而不是“创建后如何运行全部模板逻辑”
-- 若后续要新增 CLI 参数，应优先保持单入口逻辑清晰，避免过早拆散为多个复杂模块
+| 模块 | 职责说明 | 代码线索 |
+| --- | --- | --- |
+| 命令入口 | 提供脚手架命令入口，驱动项目创建流程。 | package.json scripts、CLI entry |
+| 参数采集 | 采集项目名称、Context Path 等初始化参数。 | prompt/input logic |
+| 模板生成 | 复制 g2rain-app-template 并执行占位符替换，生成标准前端子应用。 | g2rain-app-template、template copy |
 
-## 8. 常用命令
+## 职责边界
 
-```bash
-npm install
-npm run build
-npm run dev -- my-test-app cms
-node dist/index.js my-project cms
-npm create g2rain-app@latest g2rain-cms-app -- --context-path cms
-```
+该仓库主要负责：
+- 负责前端子应用工程初始化
+- 负责模板复制、参数化生成与基础配置写入
+- 负责项目创建阶段的交互式输入采集
 
-## 9. 质量与测试
-- 当前扫描到主源码文件 `1` 个，测试文件 `0` 个
-- 当前质量保障主要依赖 TypeScript 编译通过与手工场景验证
-- 当前尚未识别到自动化测试文件，后续可按参数解析、路径解析和占位替换补充测试
+该仓库默认不负责：
+- 不负责生成后项目的具体业务实现
+- 不负责运行时微前端宿主逻辑
+- 不负责后端服务逻辑
 
-## 10. 相关仓库
+## 常见问题
 
-- `g2rain-app-template`
-- `g2rain-main-shell`
-- `g2rain-manager-app`
-- `g2rain-cms-app`
-- `g2rain-department-app`
+| 问题 | 可能原因 | 处理建议 |
+| --- | --- | --- |
+| 命令无法执行 | 脚手架未完成依赖安装、未构建或 bin 链接未生效。 | 先安装依赖并确认 package.json bin 配置，再使用 npm link 或构建后的命令入口验证。 |
+| 生成项目路径不符合预期 | 项目名称、Context Path 或模板路径参数输入不正确。 | 重新执行脚手架并检查输入参数及 G2RAIN_TEMPLATE_PATH 等模板路径配置。 |
 
-## 11. 使用建议
+## 关联仓库
 
-- 适合作为平台前端子应用初始化统一入口
-- 使用前建议先确认模板目录来源是本地还是 GitHub 克隆
-- 生成后应继续参考模板仓库文档完成依赖安装、运行和联调
-- 不建议把模板运行时说明全部堆在本仓库 README 中
+| 仓库 | 协作关系 |
+| --- | --- |
+| g2rain-app-template | 作为前端子应用模板来源，配合脚手架生成标准前端工程。 |
 
-## 12. 贡献指南
+## 参与贡献
 
-欢迎通过文档改进、Issue 反馈、测试补充、CLI 参数增强等形式参与贡献。  
-建议流程：
-1. Fork 本仓库
-2. 创建特性分支
-3. 提交修改
-4. 推送分支
-5. 提交 Pull Request
+我们欢迎所有形式的贡献：Issue 反馈、文档改进、功能建议与代码提交。
 
-提交前请尽量确保：
-- 遵循现有技术栈与代码规范
-- 更新相关文档
-- 补充必要验证
+推荐流程：
 
-## 13. 许可证
+1. Fork 本仓库。
+2. 创建特性分支：`git checkout -b feature/your-feature-name`。
+3. 提交更改：`git commit -m "Add some feature"`。
+4. 推送分支：`git push origin feature/your-feature-name`。
+5. 提交 Pull Request。
 
-本项目基于 [Apache 2.0许可证](LICENSE) 开源。
+代码贡献前请尽量补充必要的测试和文档，并确保构建、测试与静态检查通过。
 
-## 14. 联系我们
+## 许可证
 
-- **站点**: https://www.g2rain.com/
-- **Issues**: [GitHub Issues](https://github.com/g2rain/g2rain/issues)
-- **讨论**: [GitHub Discussions](https://github.com/g2rain/g2rain/discussions)
-- **邮箱**: g2rain_developer@163.com
+本项目基于 [Apache 2.0许可证](https://github.com/g2rain/g2rain-common/blob/main/LICENSE) 开源。
 
-## 15. 致谢
+## 联系我们
 
-感谢所有为这个项目做出贡献的开发者们。  
-如果这个项目对您有帮助，欢迎 Star 支持。
+- Issues: [GitHub Issues](https://github.com/g2rain/g2rain/issues)
+- 讨论: [GitHub Discussions](https://github.com/g2rain/g2rain/discussions)
+- 邮箱: g2rain_developer@163.com
+
+## 致谢
+
+感谢所有为 g2rain 项目提交 Issue、代码、文档、建议和使用反馈的开发者们！
