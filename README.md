@@ -147,8 +147,9 @@ flowchart TD
 
 | 示例 | 方式 | 命令 | 说明 |
 | --- | --- | --- | --- |
-|  | 示例 | `g2rain-app` | 通过 package.json bin 暴露的命令入口创建 g2rain 前端应用。 |
-|  | 示例 | `create-g2rain-app` | 通过 package.json bin 暴露的命令入口创建 g2rain 前端应用。 |
+|  | CLI | `g2rain-app` | 不提供参数时进入交互式提示，依次采集项目名称和 Context Path。 |
+|  | CLI | `g2rain-app <project-name> --context-path <context-path>` | 直接传入项目名称和 Context Path，复制模板并生成前端子应用工程。 |
+|  | CLI | `npx create-g2rain-app <project-name> --context-path <context-path>` | 从 npm 包执行脚手架命令，适合首次创建项目。 |
 
 ## 安全说明
 
@@ -220,3 +221,4 @@ flowchart TD
 ## 致谢
 
 感谢所有为 g2rain 项目提交 Issue、代码、文档、建议和使用反馈的开发者们！
+
