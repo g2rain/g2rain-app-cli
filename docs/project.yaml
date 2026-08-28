@@ -1,0 +1,113 @@
+schemaVersion: 1
+name: g2rain-app-cli
+family: frontend-tooling-cli
+role: 从 g2rain-app-template 创建前端 App 工程
+package:
+  name: create-g2rain-app
+  version: 0.1.0
+  private: false
+  license: Apache-2.0
+  files:
+    - dist
+  bins:
+    create-g2rain-app: dist/index.js
+    g2rain-app: dist/index.js
+
+architecture:
+  type: frontend-tooling-cli
+  status: project-local
+  note: CLI 内部架构为项目专属；其跨项目输出契约由中央 frontend-app scaffolding policy 管理。
+  deviations: docs/architecture/deviations.md
+
+centralContract:
+  repository: https://github.com/g2rain/g2rain
+  ref: feature/g2rain-architectur-init
+  profile: docs/architecture/profiles/frontend-app
+  policy: docs/architecture/profiles/frontend-app/scaffolding-policy.md
+  generatedProjectProfileVersion: 1.0.0-draft
+
+template:
+  repository: https://github.com/g2rain/g2rain-app-template
+  localOverrideEnv: G2RAIN_TEMPLATE_PATH
+  defaultResolution: 相对 dist 查找相邻 g2rain-app-template，不存在时从 GitHub 克隆
+  pinnedRef: null
+  excluded:
+    - node_modules
+    - dist
+    - .git
+    - .DS_Store
+    - package-lock.json
+  placeholders:
+    - "{{PROJECT_NAME}}"
+    - "{{CONTEXT_PATH}}"
+  replacementFiles:
+    - build.sh
+    - lua/config.lua
+    - README.md
+    - .env
+    - .env.production
+    - vite.config.ts
+    - src/runtime/env/index.ts
+  packageNameRewrite: package.json.name
+
+commands:
+  install: npm ci
+  build: npm run build
+  dev: npm run dev
+  interactive: npx create-g2rain-app
+  nonInteractive: npx create-g2rain-app <project-name> --context-path <context-path>
+  packageDryRun: npm pack --dry-run
+
+toolchain:
+  node: ">=22"
+  packageManager: npm
+  lockfileVersion: 3
+  language: TypeScript 5.9.3
+  module: NodeNext ESM
+  output: dist
+
+validation:
+  buildCommand: npm run build
+  unitTests: false
+  lint: false
+  integrationScript: false
+  manualCliSmokeTestRequired: true
+
+community:
+  website: https://www.g2rain.com
+  issues: https://github.com/g2rain/g2rain/issues
+  discussions: https://github.com/g2rain/g2rain/discussions
+  security: https://github.com/g2rain/g2rain/security/advisories/new
+  email: g2rain_developer@163.com
+
+gitWorkflow:
+  primaryBranch: main
+  developmentBranch: develop
+  featurePattern: feature/<name>
+  fixPattern: fix/<name>
+  mergeFlow:
+    - feature/* 或 fix/* 合并到 develop
+    - develop 在临时目录和测试模板验证
+    - 验证通过后将 develop 合并到 main
+  commitFormat: "type(scope): summary"
+
+documentation:
+  entry: docs/index.md
+  agentEntry: AGENTS.md
+  required:
+    - docs/project.yaml
+    - docs/community.md
+    - docs/architecture/overview.md
+    - docs/architecture/runtime-flow.md
+    - docs/architecture/boundaries.md
+    - docs/architecture/deviations.md
+    - docs/development/local-development.md
+    - docs/development/command-interface.md
+    - docs/development/template-contract.md
+    - docs/development/testing.md
+    - docs/development/definition-of-done.md
+    - docs/development/git-workflow.md
+    - docs/operations/publishing.md
+    - docs/operations/troubleshooting.md
+    - docs/security/security-boundaries.md
+    - docs/requirements/README.md
