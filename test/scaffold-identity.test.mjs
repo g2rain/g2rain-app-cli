@@ -31,6 +31,7 @@ test('generated project uses business app identity and keeps template provenance
     'docs/architecture/overview.md': '# 架构概览\n\n本页描述 g2rain-app-template 的具体落地。\n\ng2rain-app-template 是生成后即可运行的 Vue 3 子应用模板。外部 CLI 负责复制和替换占位符；本仓库负责生成项目的运行架构、平台能力、业务页面约定、生成工具和部署基线。\n\n本仓库负责模板默认能力和生成后工程结构。\n',
     'docs/architecture/deviations.md': '# 偏差\n\n## DEV-008：脚手架生成后文档身份未参数化\n\n待修复。\n',
     'docs/decisions/README.md': '# 决策\n\n本目录记录只影响 g2rain-app-template 或前端模板演进的长期取舍。\n',
+    'src/platform/i18n/README.md': '# g2rain-app-template 国际化用法\n',
     'docs/project.yaml': 'schemaVersion: 1\nname: g2rain-app-template\nfamily: frontend-app-template\nrole: g2rain Vue 3 微前端子应用工程模板\npackageNameTemplate: "{{PROJECT_NAME}}"\nversion: 0.1.0\n\nprojectArchitecture:\n  role: frontend-app-template\n  note: 中央 Profile 管理跨 App 公共规则，本项目维护模板实现、生成工具、部署细节和当前偏差。\n\ntemplate:\n  placeholders:\n    - "{{PROJECT_NAME}}"\n  rules:\n    - 本仓库是应用模板\n\nlayers:\n  order:\n    - shared\n',
   };
 
@@ -65,6 +66,11 @@ test('generated project uses business app identity and keeps template provenance
 
   const deviations = await readFile(path.join(generated, 'docs', 'architecture', 'deviations.md'), 'utf8');
   assert.doesNotMatch(deviations, /DEV-008/);
+  const i18nReadme = await readFile(
+    path.join(generated, 'src', 'platform', 'i18n', 'README.md'),
+    'utf8',
+  );
+  assert.match(i18nReadme, /^# g2rain-member-app 国际化用法$/m);
   await assert.rejects(
     readFile(path.join(generated, '.idea', 'workspace.xml'), 'utf8'),
     { code: 'ENOENT' },

@@ -58,6 +58,7 @@ template:
     - docs/architecture/overview.md
     - docs/architecture/deviations.md
     - docs/decisions/README.md
+    - src/platform/i18n/README.md
   packageIdentityRewrite:
     - package.json.name
     - package.json.description

@@ -274,6 +274,12 @@ async function rewriteGeneratedProjectIdentity(
         `本目录记录只影响 ${projectName} 的长期取舍`,
       ),
     ),
+    rewriteTextFile(targetDir, 'src/platform/i18n/README.md', (content) =>
+      content.replace(
+        /^# g2rain-app-template 国际化用法$/m,
+        `# ${projectName} 国际化用法`,
+      ),
+    ),
     rewriteTextFile(targetDir, 'docs/architecture/deviations.md', (content) =>
       content.replace(/\r?\n## DEV-008：脚手架生成后文档身份未参数化[\s\S]*$/, ''),
     ),
