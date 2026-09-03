@@ -35,6 +35,7 @@ template:
     - node_modules
     - dist
     - .git
+    - .idea
     - .DS_Store
     - package-lock.json
   placeholders:
@@ -48,7 +49,22 @@ template:
     - .env.production
     - vite.config.ts
     - src/runtime/env/index.ts
-  packageNameRewrite: package.json.name
+  identityFiles:
+    - package.json
+    - README.md
+    - AGENTS.md
+    - docs/project.yaml
+    - docs/index.md
+    - docs/architecture/overview.md
+    - docs/architecture/deviations.md
+    - docs/decisions/README.md
+    - src/platform/i18n/README.md
+  packageIdentityRewrite:
+    - package.json.name
+    - package.json.description
+    - package.json.repository
+    - package.json.homepage
+    - package.json.keywords
 
 commands:
   install: npm ci
@@ -70,7 +86,7 @@ validation:
   buildCommand: npm run build
   unitTests: false
   lint: false
-  integrationScript: false
+  integrationScript: npm test
   manualCliSmokeTestRequired: true
 
 community:

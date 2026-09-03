@@ -32,12 +32,12 @@ GitHub clone 默认跟随仓库默认分支，npm 同一 CLI 版本在不同时�
 
 ## DEV-007：测试与发布保护缺失
 
-当前只有 TypeScript build，没有参数/路径/复制/替换/失败集成测试，也没有 `prepublishOnly`。npm 发布可能包含陈旧 dist；模板契约回归只能人工发现。
+当前已有生成项目身份的隔离集成测试，但参数、路径、失败恢复和发布保护仍不完整，也没有 `prepublishOnly`。npm 发布仍可能包含陈旧 dist。
 
-优先增加纯函数单元测试、临时目录集成测试、模板 manifest 契约测试和发布前自动构建/tarball 检查。
+优先继续增加纯函数单元测试、路径与失败恢复集成测试、模板 manifest 契约测试和发布前自动构建/tarball 检查。
 
 ## DEV-008：生成项目仍保留模板文档身份
 
-当前 CLI 只替换固定业务文件和 `package.json.name`，会原样复制模板的 `AGENTS.md`、`docs/index.md`、`docs/project.yaml` 等治理文档。实测生成项目的 `docs/project.yaml` 仍包含 `g2rain-app-template`，可能使 Agent 把业务 App 误判为模板仓库。
+状态：已于 2026-09-03 修复。
 
-后续应为生成项目定义独立的文档元数据契约：至少写入真实仓库名、项目名、Profile 版本、模板来源和模板 Ref，并让 `AGENTS.md` 使用生成项目身份。修复前，创建项目后必须人工校正文档元数据，不能直接把模板身份提交到新仓库。
+CLI 现在按明确清单将 `package.json`、`README.md`、`AGENTS.md`、`docs/project.yaml`、文档入口、架构概览和决策说明转换为业务 App 身份。生成项目记录真实项目名、推导的 g2rain 仓库地址、CLI 版本、模板仓库、模板 Commit（非 Git 本地模板记为 `local`）和 Context Path；集成测试验证模板身份不会继续充当业务项目身份。指向官方模板的来源链接会保留，这是可追溯信息，不是项目身份。
