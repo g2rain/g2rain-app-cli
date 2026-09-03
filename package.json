@@ -44,7 +44,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "npm run build && node --experimental-test-isolation=none --test test/scaffold-identity.test.mjs"
   },
   "dependencies": {
     "fs-extra": "^11.2.0",

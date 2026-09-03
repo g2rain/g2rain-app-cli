@@ -29,7 +29,7 @@ placeholders:
 
 ## 复制排除
 
-当前排除 `.git`、node_modules、dist、`.DS_Store` 和 package-lock。不得复制模板私钥、本地 Secret、IDE 状态或构建缓存。新增排除项时评估是否误删业务目录中的同名文件。
+当前排除 `.git`、`.idea`、node_modules、dist、`.DS_Store` 和 package-lock。`.idea` 中可能保存模板模块名、Git 分支、绝对路径和终端状态，不能进入生成项目。不得复制模板私钥、本地 Secret、其他 IDE 状态或构建缓存。新增排除项时评估是否误删业务目录中的同名文件。
 
 不复制 lockfile 意味着生成项目首次运行 `npm install` 并重新解析依赖版本，降低可复现性。若未来改为复制 lockfile，需同步 CLI 提示为 `npm ci` 并明确模板/生成项目依赖升级策略。
 
@@ -49,7 +49,7 @@ placeholders:
 - CLI 版本、模板来源和可追溯 Ref；
 - 适用于业务 App 的 Agent 审核入口，而不是模板维护说明。
 
-当前实现尚未转换 `AGENTS.md` 和 `docs/**`，会保留 `g2rain-app-template` 元数据。创建项目后需人工校正，详见[已知偏差 DEV-008](../architecture/deviations.md#dev-008生成项目仍保留模板文档身份)。后续实现应通过生成 manifest 或明确的文档占位清单完成转换，并加入集成测试。
+当前实现通过明确的身份文件清单转换 `package.json`、`README.md`、`AGENTS.md`、`docs/project.yaml`、文档入口、架构概览和决策说明。生成项目的 `docs/project.yaml` 写入 CLI 版本、模板仓库、模板 Git Commit（非 Git 本地模板为 `local`）和 Context Path；指向官方模板的来源链接继续保留。该契约由隔离集成测试覆盖，详见[DEV-008](../architecture/deviations.md#dev-008生成项目仍保留模板文档身份)。
 
 ## 契约变更流程
 

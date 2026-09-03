@@ -20,8 +20,9 @@ CLI 本身是 Node 工具，不直接采用中央 `frontend-app` 运行时分层
 - 支持交互式输入，也支持项目名与 `--context-path` 参数。
 - 优先使用 `G2RAIN_TEMPLATE_PATH` 或本地相邻模板；不存在时克隆 GitHub 模板。
 - 拒绝覆盖已存在的目标目录。
-- 复制时排除 `.git`、`node_modules`、`dist`、`.DS_Store` 和模板 `package-lock.json`。
-- 重写生成项目的 `package.json.name`，替换固定文件中的 `{{PROJECT_NAME}}` 和 `{{CONTEXT_PATH}}`。
+- 复制时排除 `.git`、`.idea`、`node_modules`、`dist`、`.DS_Store` 和模板 `package-lock.json`，避免继承模板 Git/IDE 状态。
+- 重写生成项目的 npm 包名、仓库地址和主页，替换固定文件中的 `{{PROJECT_NAME}}` 与 `{{CONTEXT_PATH}}`。
+- 将 `README.md`、`AGENTS.md` 和 `docs/**` 中的模板维护身份转换为业务 App 身份，并记录 CLI 版本、模板仓库与模板 Commit。
 
 CLI 只生成文件，不自动安装依赖、不初始化 Git、不注册 main-shell/平台资源，也不实现生成项目的业务功能。
 
@@ -110,9 +111,7 @@ flowchart TD
 - `vite.config.ts`
 - `src/runtime/env/index.ts`
 
-此外会单独重写 `package.json.name`。模板新增占位文件时必须同步 CLI 替换清单和契约测试，否则生成项目会残留占位符。
-
-> 当前 `AGENTS.md` 和 `docs/**` 会按模板原样复制，生成项目的文档元数据可能仍标识为 `g2rain-app-template`。提交新项目之前需校正项目身份、仓库名和模板来源；该问题已记录为[已知偏差 DEV-008](docs/architecture/deviations.md#dev-008生成项目仍保留模板文档身份)。
+此外会重写 `package.json` 的 `name`、`description`、`repository`、`homepage` 和模板关键词，并按明确清单转换 `README.md`、`AGENTS.md`、`docs/project.yaml`、文档入口、架构概览与决策说明中的项目身份。`docs/project.yaml` 会保留 CLI 版本、模板仓库、模板 Commit 和 Context Path，便于追溯生成来源。模板新增占位文件或身份文档时必须同步 CLI 清单和契约测试。
 
 生成后执行：
 

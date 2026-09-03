@@ -3,10 +3,10 @@
 ## 当前基线
 
 ```bash
-npm run build
+npm test
 ```
 
-当前只验证 TypeScript 编译，没有单元、lint 或自动集成测试。每次 CLI 行为变化至少在临时目录执行一次本地模板 smoke test。
+`npm test` 先编译 CLI，再使用 Node test runner 在系统临时目录创建最小模板并执行真实 CLI 进程，验证生成项目身份和模板来源记录。当前仍没有完整的参数、路径、失败恢复或发布测试；每次 CLI 行为变化还应按影响范围执行本地模板 smoke test。
 
 ## Smoke Test
 
@@ -14,8 +14,8 @@ npm run build
 2. 创建全新临时父目录。
 3. 设置 `G2RAIN_TEMPLATE_PATH` 指向已知本地模板。
 4. 非交互生成唯一项目名。
-5. 检查目标目录和排除项。
-6. 检查 package.json.name、Context Path 和残留占位符。
+5. 检查目标目录和排除项，确认 `.git` 与 `.idea` 未复制。
+6. 检查 package name、仓库地址、文档身份、模板来源、Context Path 和残留占位符。
 7. 在生成项目执行依赖安装和 `npm run build`（网络/时间允许时）。
 8. 重复同名生成，确认拒绝覆盖。
 

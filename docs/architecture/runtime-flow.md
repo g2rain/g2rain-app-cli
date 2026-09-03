@@ -31,7 +31,7 @@ sequenceDiagram
       CLI->>GitHub: git clone default branch
     end
     CLI->>FS: filtered copy
-    CLI->>FS: rewrite package.json.name
+    CLI->>FS: rewrite package and documentation identity
     CLI->>FS: replace allowlisted placeholders
     CLI-->>User: path, context path, next steps
   end
@@ -47,11 +47,12 @@ sequenceDiagram
 
 ## 复制和替换
 
-复制排除使用 basename，因此任意层级同名的 `.git`、node_modules、dist、package-lock 等都会跳过。复制完成后：
+复制排除使用 basename，因此任意层级同名的 `.git`、`.idea`、node_modules、dist、package-lock 等都会跳过，生成项目不会继承模板的 Git 历史或 WebStorm 项目状态。复制完成后：
 
-1. 解析并重写目标 `package.json.name`。
-2. 并行读取固定文件清单。
-3. 文件存在时全量字符串替换两个占位符。
-4. 文件不存在时静默跳过。
+1. 解析并重写目标 `package.json` 的名称、描述、仓库、主页和模板关键词。
+2. 并行读取固定占位符文件清单，替换 `{{PROJECT_NAME}}` 与 `{{CONTEXT_PATH}}`。
+3. 从 CLI 包版本和模板 Git 仓库读取生成来源；非 Git 本地模板将 Ref 记为 `local`。
+4. 按明确身份文件清单转换 README、Agent 入口和 docs 元数据，不对全仓执行模糊替换。
+5. 文件不存在时静默跳过，以兼容裁剪后的本地模板。
 
 没有事务目录或回滚。复制后替换失败会留下半成品目标目录，下一次运行又会因目录存在而拒绝继续；使用者需确认后手工删除或移动失败目录。
