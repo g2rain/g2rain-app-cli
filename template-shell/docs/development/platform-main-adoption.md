@@ -6,8 +6,8 @@
 
 | 项 | 状态 |
 | --- | --- |
-| 依赖 `@g2rain/platform` | 已通过 `kits/*.tgz` 接入；组合根调用 `createMainPlatform` |
-| 依赖 `@g2rain/http` | 已通过 `kits/*.tgz` 接入；`runtime/http` 装配工厂（`withAuth: true` + 独立 auth client） |
+| 依赖 `@g2rain/platform` | 已通过 npm `@g2rain/platform@1.0.0` 接入；组合根调用 `createMainPlatform` |
+| 依赖 `@g2rain/http` | 已通过 npm `@g2rain/http@1.0.0` 接入；`runtime/http` 装配工厂（`withAuth: true` + 独立 auth client） |
 | `createMainPlatform` / `runtimePort` | 已在 `runtime/boot.ts` 接线；`emit` 经 `emitDirectedMessage` 投递 window CustomEvent |
 | 公开 props | `mountInstance` 使用定义上的**子应用** `contextPath`（非 Shell `VITE_CONTEXT_PATH`）；**禁止**下发 Token |
 | Token Store / SSO | 已实现于 `platform/stores/token.store.ts`、`runtime/auth/sso.ts`；回调 `/sso_callback`、登出 `/logout` |
