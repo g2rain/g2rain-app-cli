@@ -99,7 +99,7 @@ export function shouldCopyApp(src, sourceRoot) {
 
 /**
  * Filter for copying g2rain-shell-template root → template-shell/
- * Excludes legacy-overlay/; allows kits/*.tgz.
+ * Excludes legacy-overlay/ and local package archives.
  * @param {string} src
  * @param {string} sourceRoot
  */
@@ -111,11 +111,6 @@ export function shouldCopyShell(src, sourceRoot) {
   const basename = path.basename(src);
   if (isLocalEnvFile(basename)) return false;
   if (isLocalSigningKeyMetadata(parts)) return false;
-
-  // kits/*.tgz are required for Docker file: dependencies until npm registry.
-  if (parts[0] === 'kits' && basename.endsWith('.tgz')) {
-    return true;
-  }
 
   if (SHELL_BLOCKED_EXTENSIONS.has(path.extname(basename).toLowerCase())) {
     return false;

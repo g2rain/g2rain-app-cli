@@ -72,7 +72,7 @@ create-g2rain-app shell g2rain-admin-shell --context-path admin --port 3000
 create-g2rain-app --family frontend-shell --name g2rain-admin-shell --context-path admin --port 3000
 ```
 
-Shell 默认 Context Path 为 `admin`，端口 `3000`。生成后按 `kits/README.md` 放入 appkit pack 制品再 `npm install`。
+Shell 默认 Context Path 为 `admin`，端口 `3000`。生成后直接执行 `npm install`；AppKit 依赖使用模板声明的已发布 `@g2rain/*` 版本。
 
 不带参数时会提问。项目名默认 `g2rain-new-app`。Context Path 不要带前导斜杠；省略时由项目名去掉 `g2rain-` 前缀和 `-app` 后缀得到，例如 `g2rain-order-app` 得到 `order`。
 

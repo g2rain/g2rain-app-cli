@@ -29,7 +29,6 @@ const REQUIRED_DIRS = [
   'src/runtime',
   'src/views',
   'src/shell',
-  'kits',
 ];
 
 const LEGACY_REQUIRED = [

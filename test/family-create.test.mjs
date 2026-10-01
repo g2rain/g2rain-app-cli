@@ -158,7 +158,6 @@ test('scaffold shell from bundled template-shell', async (t) => {
     'src/shell/menu.ts',
     'src/platform/main-platform.ts',
     'src/runtime/http/index.ts',
-    'kits/README.md',
   ];
   for (const relative of required) {
     assert.ok(await fs.pathExists(path.join(generated, relative)), `missing ${relative}`);

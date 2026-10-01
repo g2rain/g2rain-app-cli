@@ -28,7 +28,7 @@ CLI 至少依赖模板存在 `package.json`；当前缺失时 create 直接失�
 - `.g2rain-template-meta.json`
 - `.g2rain-template-snapshot.md`
 
-Shell 同步额外排除源仓 `legacy-overlay/`（写入独立 `template-shell-legacy/`），并对 `kits/*.tgz` 特例放行。
+Shell 同步额外排除源仓 `legacy-overlay/`（写入独立 `template-shell-legacy/`）和本地 `.tgz` 包制品；AppKit 依赖应使用已发布的 npm 版本。
 
 不复制 lockfile 意味着生成项目首次运行 `npm install` 并重新解析依赖版本。
 

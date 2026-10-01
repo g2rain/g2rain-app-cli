@@ -33,7 +33,7 @@ Notes:
   - Baseline menus are Shell-local only; no hardcoded business micro-app entries.
   - Default scaffold is AppKit-only; --with-legacy merges template-shell-legacy.
   - Override template with G2RAIN_SHELL_TEMPLATE_PATH for local development.
-  - Install appkit via file:kits/*.tgz (see kits/README.md). Not npm link.
+  - Uses published @g2rain/* package versions declared by the template.
 `,
   rewriteIdentity: rewriteFrontendShellIdentity,
   rewritePackageJson: rewriteFrontendShellPackageJson,
@@ -42,7 +42,6 @@ Notes:
   nextSteps: (options) => {
     const steps = [
       `cd ${options.projectName}`,
-      '# Pack appkit into kits/ then:',
       'npm install',
       'npm run dev',
     ];
