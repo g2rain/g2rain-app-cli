@@ -1,7 +1,7 @@
 {
   "name": "create-g2rain-app",
-  "version": "0.1.0",
-  "description": "CLI to scaffold micro-frontend sub-apps from g2rain-app-template (Vue 3 + Vite + qiankun).",
+  "version": "1.0.0",
+  "description": "CLI to scaffold G2rain frontend-app sub-apps and frontend-shell Main Shells, plus generate / build-config tooling.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -21,7 +21,8 @@
     "vue",
     "vite",
     "qiankun",
-    "micro-frontend"
+    "micro-frontend",
+    "codegen"
   ],
   "contributors": [
     {
@@ -40,24 +41,41 @@
     "create-g2rain-app": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "template",
+    "template-shell",
+    "template-shell-legacy",
+    "LICENSE",
+    "README.md"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-templates.mjs",
+    "sync:template": "node scripts/sync-app-template.mjs",
+    "sync:template:shell": "node scripts/sync-shell-template.mjs",
+    "sync:templates": "npm run sync:template && npm run sync:template:shell",
+    "verify:template-snapshots": "node scripts/verify-template-snapshots.mjs",
+    "prepublishOnly": "node scripts/assert-ci-publish.mjs && node scripts/check-embedded-template.mjs && npm run build",
     "dev": "tsx src/index.ts",
-    "test": "npm run build && node --experimental-test-isolation=none --test test/scaffold-identity.test.mjs"
+    "test": "npm run build && node --experimental-test-isolation=none --test test/*.test.mjs"
   },
   "dependencies": {
+    "ejs": "^3.1.10",
     "fs-extra": "^11.2.0",
     "kleur": "^4.1.5",
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "ts-morph": "^23.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.19.0",
+    "@types/ejs": "^3.1.5",
     "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.19.0",
     "@types/prompts": "^2.4.9",
     "tsx": "^4.21.0",
     "typescript": "5.9.3"
   }
 }
-

@@ -2,29 +2,30 @@
 
 ## CLI 负责
 
-- 解析交互式和非交互式创建参数。
-- 选择可信模板来源。
-- 保护目标目录不被覆盖。
-- 按契约复制与排除文件。
-- 重写项目名和 Context Path 占位符。
+- 解析交互式和非交互式 **create** 参数，并通过 family registry 分发到 `frontend-app` / `frontend-shell`。
+- 选择可信模板来源（app：`template/`；shell：`template-shell/`）；保护目标目录不被覆盖。
+- 按契约复制与排除文件；重写项目名、Context Path、端口等占位符与 `docs/project.yaml` 身份。
+- **开发期生成引擎**（仅 frontend-app）：`generate` 与 `build-config`。
 - 用明确退出码和消息报告结果。
-- 让生成项目具备采用中央 Frontend App Profile 的基础结构。
+- 让生成项目具备对应中央 Profile 要求的文档与目录基线。
 
 ## CLI 不负责
 
-- 生成项目的业务页面、领域 API 和资源授权设计。
-- main-shell 子应用注册、IAM 客户端注册或 Gateway 路由配置。
+- 生成项目的业务领域规则与最终授权设计。
+- 用 `frontend-app` 模板冒充 Main Shell，或从 `g2rain-main-shell` 复制历史实现。
+- 平台侧资源导入、IAM 客户端注册或 Gateway 路由配置。
 - 默认安装依赖、初始化 Git、创建远程仓库或部署环境。
 - 自动升级已有项目到新模板版本。
-- 把 `npm run build` 当作生成项目全部测试。
 - 在没有显式需求和失败恢复设计时执行任意 post-create 脚本。
+- 浏览器运行时依赖（theme/ui/http/platform）；此类能力属于 `g2rain-appkit`。
 
 ## 与模板的契约
 
-模板拥有目录、默认代码、占位符和生成后命令；CLI 拥有模板获取、复制和替换实现。任何一方变化都要进行跨仓库契约验证。
-
-模板发布新文件或占位符时，CLI 不能依赖模糊全仓替换避免维护清单，因为这可能修改二进制、示例或用户预期保留的文字。应使用版本化清单/manifest 或明确模板元数据演进。
+- `g2rain-app-template` → 包内 `template/` → `frontend-app`
+- `g2rain-shell-template` → 包内 `template-shell/` → `frontend-shell`
+- 模板拥有默认目录与占位符；CLI 拥有获取、复制、替换与分族校验。
+- App 可通过 `devDependency` + `npm run build:generate|build-config` 调用 CLI bin。
 
 ## 与中央 Profile 的关系
 
-CLI 内部不是 Vue App，不适用 `views → runtime → platform → components → shared`。但 CLI 输出必须包含 Profile 要求的文档、目录和验证入口，模板/CLI 不能静默生成违反中央规则的新项目。
+CLI 内部不是 Vue App。`app` 输出须符合 `frontend-app`；`shell` 输出须符合 `frontend-shell` 与 appkit Main Shell 生成契约的必填 docs 树。

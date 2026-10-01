@@ -1,0 +1,48 @@
+# 依赖目录
+node_modules
+npm-debug.log
+yarn-error.log
+
+# 构建产物（将在 Docker 中构建）
+dist
+
+# 开发相关文件
+.git
+.gitignore
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 文档
+README.md
+*.md
+
+# 测试文件
+coverage
+.nyc_output
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 日志文件
+logs
+*.log
+
+# 临时文件
+tmp
+temp
+.cache
+
+# Docker 相关
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# 其他
+.DS_Store
+Thumbs.db
+

@@ -11,9 +11,11 @@
 
 ## 开发
 
+- [使用手册](development/usage.md)
 - [本地开发](development/local-development.md)
 - [命令接口](development/command-interface.md)
 - [模板契约](development/template-contract.md)
+- [模板快照治理](template-snapshots.md)
 - [测试策略](development/testing.md)
 - [完成定义](development/definition-of-done.md)
 - [Git 工作流](development/git-workflow.md)
@@ -21,6 +23,7 @@
 ## 运行、安全与治理
 
 - [发布](operations/publishing.md)
+- [GitHub 发布治理](operations/github-release-governance.md)
 - [故障排查](operations/troubleshooting.md)
 - [安全边界](security/security-boundaries.md)
 - [Requirements](requirements/README.md)

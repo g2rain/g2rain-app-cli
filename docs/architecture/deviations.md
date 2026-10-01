@@ -12,32 +12,36 @@
 
 ## DEV-003：模板 clone 使用 shell 字符串
 
-当前 `execSync('git clone ... "templateRoot"')` 拼接 shell 命令。模板路径可受环境变量影响，包含引号或 shell 元字符时存在注入/转义风险。应改用 `spawnSync`/`execFileSync` 参数数组，并验证最终路径。
+状态：已于 2026-09-13 关闭。
+
+create 默认使用包内 `template/` 快照，不再 Git clone；此前 `execFileSync` 参数数组实现也已移除。
 
 ## DEV-004：模板来源未固定版本
 
-GitHub clone 默认跟随仓库默认分支，npm 同一 CLI 版本在不同时间可能生成不同代码。项目元数据也没有记录模板 Commit/Tag。
+状态：已于 2026-10-01 进一步关闭。
 
-正式发布应确定兼容模板 Ref，支持显式 `--template-ref` 或版本映射，并把来源/Ref 写入生成项目元数据。
+正式 npm 包内嵌 `template/`、`template-shell/`、`template-shell-legacy/` 快照，meta schema v2 记录 `sourceRef`（Git tag）、完整 `sourceCommit` 与 `contentSha256`。正式同步由 GitHub Actions `sync-templates` 创建 PR；本地 sync 需 `G2RAIN_ALLOW_LOCAL_SYNC=1`。详见 [template-snapshots.md](../template-snapshots.md)。
 
 ## DEV-005：模板完整性和失败恢复不足
 
-只要模板路径存在就会复制，不校验 package.json、占位 manifest 或 Profile 版本。clone/复制/替换失败会留下半成品目标目录，后续运行因目录已存在而停止。
+状态：部分缓解（2026-10-01）。
 
-建议验证模板 manifest，在临时目录完成生成和校验后原子重命名；失败只清理本次创建的已验证临时目录。
+`npm run verify:template-snapshots` 校验 meta、树哈希、Shell 无 legacy、legacy overlay 必需文件，并在 CI 中从源仓 tag 重建比对。复制失败半成品清理与原子重命名仍待补齐。
 
-## DEV-006：参数接口静默忽略未知选项
+## DEV-006：参数接口曾静默忽略未知选项
 
-未知 `-` 选项直接跳过，拼写错误可能触发 Prompt 或生成意外结果。应提供 `--help`、`--version`、明确未知参数错误和非 TTY 下缺参失败。
+状态：已于 2026-09-27 进一步缓解。
+
+未知 `-` 选项会抛错并非零退出；已提供 `--help` / `--version` 与 `app`/`shell` 分族帮助。非 TTY 缺参统一失败策略仍待补齐。
 
 ## DEV-007：测试与发布保护缺失
 
-当前已有生成项目身份的隔离集成测试，但参数、路径、失败恢复和发布保护仍不完整，也没有 `prepublishOnly`。npm 发布仍可能包含陈旧 dist。
+状态：进一步缓解（2026-10-01）。
 
-优先继续增加纯函数单元测试、路径与失败恢复集成测试、模板 manifest 契约测试和发布前自动构建/tarball 检查。
+已有脚手架身份集成测试、dispatch / generate / build-config fixture 测试，以及模板解析测试。新增 snapshot hash/verify 与 sync/publish GitHub Actions（OIDC Trusted Publishing + `npm-production` 审批）。参数路径逃逸与失败恢复仍不完整。
 
 ## DEV-008：生成项目仍保留模板文档身份
 
 状态：已于 2026-09-03 修复。
 
-CLI 现在按明确清单将 `package.json`、`README.md`、`AGENTS.md`、`docs/project.yaml`、文档入口、架构概览和决策说明转换为业务 App 身份。生成项目记录真实项目名、推导的 g2rain 仓库地址、CLI 版本、模板仓库、模板 Commit（非 Git 本地模板记为 `local`）和 Context Path；集成测试验证模板身份不会继续充当业务项目身份。指向官方模板的来源链接会保留，这是可追溯信息，不是项目身份。
+CLI 现在按明确清单将 `package.json`、`README.md`、`AGENTS.md`、`docs/project.yaml`、文档入口、架构概览和决策说明转换为业务 App 身份。生成项目记录真实项目名、推导的 g2rain 仓库地址、CLI 版本、模板仓库、模板 tag/commit（embedded meta 优先；否则 Git commit；再否则 `local`）和 Context Path；集成测试验证模板身份不会继续充当业务项目身份。指向官方模板的来源链接会保留，这是可追溯信息，不是项目身份。

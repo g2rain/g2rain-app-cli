@@ -1,0 +1,4 @@
+# Shell / Docker entrypoints must use LF (CRLF causes: exec format error)
+*.sh text eol=lf
+nginx/docker-entrypoint.sh text eol=lf
+Dockerfile text eol=lf

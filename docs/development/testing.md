@@ -6,35 +6,33 @@
 npm test
 ```
 
-`npm test` 先编译 CLI，再使用 Node test runner 在系统临时目录创建最小模板并执行真实 CLI 进程，验证生成项目身份和模板来源记录。当前仍没有完整的参数、路径、失败恢复或发布测试；每次 CLI 行为变化还应按影响范围执行本地模板 smoke test。
+GitHub Actions `ci.yml` 在每个 PR 与 `main`/`develop` push 上执行：`npm ci` → `npm test` → `npm pack --dry-run` → `npm run verify:template-snapshots`（仅 meta/hash/结构，不切换源仓、不强制跨仓重建）。跨仓重建留给 `verify-template-snapshots.yml`。
 
-## Smoke Test
+`npm test` 先编译 CLI（含复制 ejs 模板），再运行 Node test runner：
 
-1. 构建 CLI。
-2. 创建全新临时父目录。
-3. 设置 `G2RAIN_TEMPLATE_PATH` 指向已知本地模板。
-4. 非交互生成唯一项目名。
-5. 检查目标目录和排除项，确认 `.git` 与 `.idea` 未复制。
-6. 检查 package name、仓库地址、文档身份、模板来源、Context Path 和残留占位符。
-7. 在生成项目执行依赖安装和 `npm run build`（网络/时间允许时）。
-8. 重复同名生成，确认拒绝覆盖。
+| 文件 | 覆盖 |
+| --- | --- |
+| `test/scaffold-identity.test.mjs` | frontend-app 脚手架身份改写 |
+| `test/family-create.test.mjs` | app/shell 族解析、帮助、默认族提示、双模板脚手架 |
+| `test/dispatch.test.mjs` | 子命令路由、family 别名、未知选项 |
+| `test/generate.test.mjs` | SQL → views / route-map |
+| `test/build-config.test.mjs` | route-map + v-permission → JSON |
+| `test/resolve-template.test.mjs` | `template/` / `template-shell/` 与 env 覆盖 |
+| `test/template-snapshots.test.mjs` | meta v2、树哈希、tag 解析、marker 排除 |
+
+## Smoke Test（create）
+
+1. 构建 CLI（确保已 `npm run sync:templates`）。
+2. 临时目录：`create-g2rain-app app ...` 与 `create-g2rain-app shell ...`。
+3. 检查 `family`、排除项、template ref；shell 检查 docs 树与无硬编码业务 entry。
+4. 可选：用 `G2RAIN_TEMPLATE_PATH` / `G2RAIN_SHELL_TEMPLATE_PATH` 覆盖再验。
 
 ## 按变化验证
 
 | 变化 | 覆盖场景 |
 | --- | --- |
-| 参数解析 | 两个 flag 拼写、位置参数、缺参、未知参数、取消、非 TTY |
-| 项目名/路径 | 正常名、scoped/非法名、绝对路径、`..`、空白、已有目录 |
-| Context Path | 默认推导、首尾 `/`、空值、非法字符、多段路径 |
-| 模板定位 | 环境覆盖、本地相邻目录、Git clone、网络失败、不完整目录 |
-| 复制 | 排除项、隐藏文件、二进制、权限和符号链接策略 |
-| 替换 | 所有清单文件、缺失文件、重复 token、特殊字符、残留 token |
-| 发布 | shebang、两个 bin、npm pack 内容、干净安装后的执行 |
-
-## 建议自动化
-
-- 使用 Node test runner 或 Vitest 测试参数、规范化和路径校验纯函数。
-- 使用 `mkdtemp` 建立隔离集成测试，注入最小模板 fixture。
-- 把 clone 适配成可替换接口，测试失败而不访问网络。
-- 增加模板 manifest 契约测试和生成项目最小 build。
-- 增加 `prepublishOnly` 执行 build/test，并在 CI 检查 `npm pack --dry-run`。
+| 参数解析 | app/shell/create/generate/build-config、`--family`、未知参数、`--help` |
+| generate | 最小 SQL、`--no-*`、路径 flag |
+| build-config | 多权限、空页面目录警告、输出三 JSON |
+| 模板定位 | 包内 template / template-shell、族 env、缺失时报错 |
+| 发布 | shebang、两个 bin、npm pack 含 dist + template + template-shell、无 node_modules |
