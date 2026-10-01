@@ -182,6 +182,7 @@ test('shell filter excludes legacy-overlay basename', () => {
   );
   assert.equal(shouldCopyShell(path.join(root, 'src', 'main.ts'), root), true);
   assert.equal(includeInTreeHash('.g2rain-template-meta.json'), false);
+  assert.equal(includeInTreeHash('lua/keys/iam-key-id.txt'), false);
 });
 
 test('snapshot markdown mentions legacy overlay rule', () => {

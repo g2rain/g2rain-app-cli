@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import fse from 'fs-extra';
 import os from 'node:os';
 import {
+  includeInTreeHash,
   shouldCopyApp,
   shouldCopyOverlay,
   shouldCopyShell,
@@ -97,6 +98,7 @@ async function listContentFiles(dir) {
       }
       const child = path.join(abs, name);
       const childRel = rel ? `${rel}/${name}` : name;
+      if (!includeInTreeHash(childRel)) continue;
       const st = await fse.lstat(child);
       if (st.isSymbolicLink()) {
         throw new Error(`Symlink not allowed: ${childRel}`);

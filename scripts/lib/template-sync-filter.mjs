@@ -45,6 +45,16 @@ function isLocalEnvFile(basename) {
   return basename === '.env.local' || /^\.env\..+\.local$/.test(basename);
 }
 
+/** Generated locally when shell signing keys are provisioned; never snapshot it. */
+function isLocalSigningKeyMetadata(parts) {
+  return (
+    parts.length >= 3 &&
+    parts.at(-1) === 'iam-key-id.txt' &&
+    parts.at(-2) === 'keys' &&
+    parts.at(-3) === 'lua'
+  );
+}
+
 function relativeParts(src, sourceRoot) {
   const relative = path.relative(sourceRoot, src);
   if (!relative || relative === '.') return null;
@@ -78,6 +88,7 @@ export function shouldCopyApp(src, sourceRoot) {
 
   const basename = path.basename(src);
   if (isLocalEnvFile(basename)) return false;
+  if (isLocalSigningKeyMetadata(parts)) return false;
   if (BLOCKED_EXTENSIONS.has(path.extname(basename).toLowerCase())) return false;
 
   const luaKeys = allowLuaKeysReadme(parts);
@@ -99,6 +110,7 @@ export function shouldCopyShell(src, sourceRoot) {
 
   const basename = path.basename(src);
   if (isLocalEnvFile(basename)) return false;
+  if (isLocalSigningKeyMetadata(parts)) return false;
 
   // kits/*.tgz are required for Docker file: dependencies until npm registry.
   if (parts[0] === 'kits' && basename.endsWith('.tgz')) {
@@ -124,6 +136,7 @@ export function shouldCopyOverlay(src, overlayRoot) {
 
   const basename = path.basename(src);
   if (isLocalEnvFile(basename)) return false;
+  if (isLocalSigningKeyMetadata(parts)) return false;
   if (SHELL_BLOCKED_EXTENSIONS.has(path.extname(basename).toLowerCase())) {
     return false;
   }
@@ -139,6 +152,7 @@ export function shouldCopyOverlay(src, overlayRoot) {
 export function includeInTreeHash(posixRelative) {
   if (!posixRelative || posixRelative === '.') return false;
   const parts = posixRelative.split('/');
+  if (isLocalSigningKeyMetadata(parts)) return false;
   for (const part of parts) {
     if (TREE_HASH_EXCLUDED_BASENAMES.has(part)) return false;
   }

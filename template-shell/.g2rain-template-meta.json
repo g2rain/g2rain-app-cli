@@ -6,7 +6,7 @@
   "sourceRepository": "https://github.com/g2rain/g2rain-shell-template",
   "sourceRef": "v0.1.0-cli-bootstrap",
   "sourceCommit": "94c96e3706896b2d200528f04ab400c7c202f56b",
-  "contentSha256": "sha256:71e09b7703663d07285b50d23f3ed2b98aae333b83e26d032af374d902452770",
+  "contentSha256": "sha256:9e3f73a30c2f83ac9be6c59881ac2317738b983c4e7dcf03ac45b39e3923cd57",
   "syncedAt": "2026-10-01T06:02:16.451Z",
   "syncWorkflow": ".github/workflows/sync-templates.yml"
 }
