@@ -44,7 +44,7 @@
 
 1. 递归文件，POSIX 相对路径字典序。
 2. 排除 meta、snapshot.md、`.git`、`node_modules`、`dist`。
-3. 对每个文件写入：路径 + NUL + 内容 + NUL。
+3. 对每个文件写入：路径 + NUL + 内容 + NUL；有效 UTF-8 文本先将 `CRLF` 规范化为 `LF`，二进制文件保持原始字节。
 4. 遇 symlink 失败。
 5. 与 sync 使用同一 [`scripts/lib/template-sync-filter.mjs`](../scripts/lib/template-sync-filter.mjs) 过滤规则重建比对。
 

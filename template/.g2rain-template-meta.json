@@ -6,7 +6,7 @@
   "sourceRepository": "https://github.com/g2rain/g2rain-app-template",
   "sourceRef": "v0.1.0-cli-bootstrap",
   "sourceCommit": "ab71bcd1963d51c8136d73905c04ac9280463f10",
-  "contentSha256": "sha256:e407aede382d3b3a18865c8551932f2b02bab34d74e9ba59ea294b2e155092c3",
+  "contentSha256": "sha256:479164dc61863ef51fe78d21e201b9fc84ee73463cebe77746073b78f5ff4308",
   "syncedAt": "2026-10-01T06:02:16.168Z",
   "syncWorkflow": ".github/workflows/sync-templates.yml"
 }

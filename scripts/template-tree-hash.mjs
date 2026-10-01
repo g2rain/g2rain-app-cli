@@ -58,6 +58,23 @@ async function listFiles(root) {
 }
 
 /**
+ * Git may materialize text files as CRLF on Windows and LF on Linux. Hash the
+ * canonical LF representation for valid UTF-8 text, while keeping binary
+ * content byte-for-byte intact.
+ * @param {Buffer} content
+ * @returns {Buffer}
+ */
+function canonicalizeContent(content) {
+  if (content.includes(0)) return content;
+
+  const text = content.toString('utf8');
+  // Invalid UTF-8 is treated as binary; never transform it.
+  if (!Buffer.from(text, 'utf8').equals(content)) return content;
+
+  return Buffer.from(text.replace(/\r\n/g, '\n'), 'utf8');
+}
+
+/**
  * Deterministic content tree hash: sha256:<hex>
  * @param {string} templateDir
  * @returns {Promise<string>}
@@ -76,7 +93,7 @@ export async function hashTemplateTree(templateDir) {
     hash.update(Buffer.from(rel, 'utf-8'));
     hash.update(nul);
     const content = await fsp.readFile(path.join(root, ...rel.split('/')));
-    hash.update(content);
+    hash.update(canonicalizeContent(content));
     hash.update(nul);
   }
 

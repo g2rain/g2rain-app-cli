@@ -156,6 +156,20 @@ test('tree hash is deterministic and ignores markers', async (t) => {
   assert.notEqual(h1, h3);
 });
 
+test('tree hash is stable across LF and CRLF text checkouts', async (t) => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'g2rain-hash-eol-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const file = path.join(dir, 'README.md');
+
+  await writeFile(file, 'line one\nline two\n', 'utf8');
+  const lfHash = await hashTemplateTree(dir);
+
+  await writeFile(file, 'line one\r\nline two\r\n', 'utf8');
+  const crlfHash = await hashTemplateTree(dir);
+
+  assert.equal(crlfHash, lfHash);
+});
+
 test('shell filter excludes legacy-overlay basename', () => {
   const root = path.join(os.tmpdir(), 'shell-src');
   assert.equal(
