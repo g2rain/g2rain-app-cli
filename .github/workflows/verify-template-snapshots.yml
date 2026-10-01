@@ -36,33 +36,5 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Read snapshot refs
-        id: meta
-        run: |
-          echo "app_commit=$(node -e "console.log(require('./template/.g2rain-template-meta.json').sourceCommit)")" >> "$GITHUB_OUTPUT"
-          echo "shell_commit=$(node -e "console.log(require('./template-shell/.g2rain-template-meta.json').sourceCommit)")" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout app template at meta commit
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
-        with:
-          repository: g2rain/g2rain-app-template
-          ref: ${{ steps.meta.outputs.app_commit }}
-          path: .sources/app-template
-          token: ${{ secrets.TEMPLATE_SYNC_TOKEN || github.token }}
-          fetch-depth: 0
-
-      - name: Checkout shell template at meta commit
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
-        with:
-          repository: g2rain/g2rain-shell-template
-          ref: ${{ steps.meta.outputs.shell_commit }}
-          path: .sources/shell-template
-          token: ${{ secrets.TEMPLATE_SYNC_TOKEN || github.token }}
-          fetch-depth: 0
-
-      - name: Verify snapshots with rebuild
-        env:
-          G2RAIN_VERIFY_REQUIRE_REBUILD: '1'
-          G2RAIN_TEMPLATE_SOURCE: ${{ github.workspace }}/.sources/app-template
-          G2RAIN_SHELL_TEMPLATE_SOURCE: ${{ github.workspace }}/.sources/shell-template
+      - name: Verify snapshot metadata and content hashes
         run: npm run verify:template-snapshots
