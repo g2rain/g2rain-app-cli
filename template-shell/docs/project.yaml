@@ -3,6 +3,7 @@ name: "{{PROJECT_NAME}}"
 repository: g2rain/g2rain-shell-template
 family: frontend-shell-template
 role: G2rain Main Shell 官方脚手架模板（由 create-g2rain-app shell 复制生成主应用）
+license: Apache-2.0
 architecture:
   centralRepository: g2rain/g2rain
   baselineRef: architecture-v1.2.0

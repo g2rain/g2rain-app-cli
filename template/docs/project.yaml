@@ -3,7 +3,7 @@ name: g2rain-app-template
 family: frontend-app-template
 role: g2rain Vue 3 微前端子应用工程模板
 packageNameTemplate: "{{PROJECT_NAME}}"
-version: 0.1.0
+version: 1.0.0
 license: Apache-2.0
 
 architectureBaseline:
@@ -16,7 +16,7 @@ architectureBaseline:
 
 projectArchitecture:
   role: frontend-app-template
-  note: 中央 Profile 管理跨 App 公共规则，本项目维护模板实现、生成工具、部署细节和当前偏差。HTTP 公共内核经 @g2rain/http（kits）、生命周期经 @g2rain/platform/sub；集成挂载要求显式 applicationCode/viewId/instanceId（appKey===instanceId），认证经 Auth Bridge，不再接受仅 appKey 或 props Token 的旧壳路径。
+  note: 中央 Profile 管理跨 App 公共规则，本项目维护模板实现、生成工具、部署细节和当前偏差。HTTP 公共内核经 @g2rain/http，生命周期经 @g2rain/platform/sub；集成挂载要求显式 applicationCode/viewId/instanceId（appKey===instanceId），认证经 Auth Bridge，不再接受仅 appKey 或 props Token 的旧壳路径。
 
 toolchain:
   node: ">=22"

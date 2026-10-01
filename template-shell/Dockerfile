@@ -6,8 +6,6 @@ WORKDIR /app
 ARG VITE_BUILD_MODE=production
 
 COPY package.json package-lock.json* .npmrc* ./
-# file:kits/*.tgz must exist before npm install (see kits/README.md)
-COPY kits ./kits
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --legacy-peer-deps --no-audit --no-fund --loglevel=warn || npm install --legacy-peer-deps --no-audit --no-fund
 

@@ -6,7 +6,6 @@
 | --- | --- | --- | --- |
 | TPL-001 | 已接菜单挂载 + Tab↔地址栏同步 + `MicroAppFallback` + **深链 `restoreAfterAuth` + `/redirect` Gateway + Vite SPA fallback**；生产 Nginx 微路径 document 回退待环境验证 | 生产若未配置微路径回退到壳 index，刷新 `/member/...` 仍 404 | 目标环境完成 Nginx（或等价）微路径 document → 壳 `index.html` 后关闭本行 |
 | TPL-002 | Token Store / SSO / `bootstrapSession` 已落地；联调冒烟待真实 IAM + Gateway + Sign | 本地无 SSO / Backend 配置时启动或换票失败 | 配置 `VITE_SSO_BASE_URL` + `VITE_BACKEND_ORIGIN` 完成未登录→回调→刷新→退出后关闭本行 |
-| TPL-004 | `package.json` 通过已跟踪的 `kits/*.tgz` 引用 appkit 包 | 镜像可离线构建；包体积偏大 | 改为正式 npm registry 版本后可停止跟踪 tarball |
 | TPL-005 | OpenResty/Lua 签名已纳入模板；容器联调与密钥注入待各环境验证 | 生成后需挂载 `lua/keys` | 在目标环境完成 `docker compose -f docker-compose.sign.yml` 或等价镜像冒烟后关闭本行 |
 | TPL-006 | ~~REQUEST_TOKEN / route-change 未接~~ → 已接 | — | 可关闭本行 |
 | TPL-007 | Token 持久化于 `localStorage` 键 `g2rain-shell-token:${applicationCode}`（旧固定键一次性迁移） | XSS / 共享设备有落盘风险 | 评估 HttpOnly 会话或缩短 refresh；禁止 `console.log` 整包消息 |
