@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
-import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -14,16 +13,23 @@ const { parseTopLevel, parseCreateArgs } = await import(
   pathToFileURL(path.join(repoRoot, 'dist', 'cli', 'parse.js')).href
 );
 const { scaffoldProject } = await import(pathToFileURL(cliEntry).href);
+const { runCreate, runHelp } = await import(
+  pathToFileURL(path.join(repoRoot, 'dist', 'commands', 'create.js')).href
+);
 const { resolveTemplateRoot } = await import(
   pathToFileURL(path.join(repoRoot, 'dist', 'scaffold', 'resolve-template-root.js')).href
 );
 
-function runCli(args, cwd) {
-  return spawnSync(process.execPath, [cliEntry, ...args], {
-    cwd,
-    encoding: 'utf8',
-    env: { ...process.env, FORCE_COLOR: '0' },
-  });
+async function captureConsole(run) {
+  const originalLog = console.log;
+  const output = [];
+  console.log = (...args) => output.push(args.join(' '));
+  try {
+    await run();
+    return output.join('\n');
+  } finally {
+    console.log = originalLog;
+  }
 }
 
 test('app alias and --family frontend-app parse to frontend-app', () => {
@@ -83,36 +89,36 @@ test('legacy create defaults to frontend-app', () => {
   assert.equal(parsed.projectName, 'legacy-app');
 });
 
-test('help distinguishes app and shell', () => {
-  const root = runCli(['--help'], repoRoot);
-  assert.equal(root.status, 0);
-  assert.match(root.stdout, /frontend-app/);
-  assert.match(root.stdout, /frontend-shell/);
+test('help distinguishes app and shell', async () => {
+  const root = await captureConsole(() => runHelp([]));
+  assert.match(root, /frontend-app/);
+  assert.match(root, /frontend-shell/);
 
-  const appHelp = runCli(['app', '--help'], repoRoot);
-  assert.equal(appHelp.status, 0);
-  assert.match(appHelp.stdout, /g2rain-app-template/);
-  assert.doesNotMatch(appHelp.stdout, /g2rain-shell-template/);
+  const appHelp = await captureConsole(() => runHelp(['app']));
+  assert.match(appHelp, /g2rain-app-template/);
+  assert.doesNotMatch(appHelp, /g2rain-shell-template/);
 
-  const shellHelp = runCli(['shell', '--help'], repoRoot);
-  assert.equal(shellHelp.status, 0);
-  assert.match(shellHelp.stdout, /g2rain-shell-template/);
-  assert.match(shellHelp.stdout, /Does NOT use g2rain-app-template/);
-  assert.match(shellHelp.stdout, /--port/);
-  assert.match(shellHelp.stdout, /--with-legacy/);
+  const shellHelp = await captureConsole(() => runHelp(['shell']));
+  assert.match(shellHelp, /g2rain-shell-template/);
+  assert.match(shellHelp, /Does NOT use g2rain-app-template/);
+  assert.match(shellHelp, /--port/);
+  assert.match(shellHelp, /--with-legacy/);
 });
 
-test('legacy create prints default family notice', () => {
+test('legacy create prints default family notice', async () => {
   const sandbox = mkdtemp(path.join(os.tmpdir(), 'g2rain-cli-notice-'));
-  return sandbox.then(async (dir) => {
-    try {
-      const result = runCli(['notice-app', '--context-path', 'notice'], dir);
-      // May fail if target exists from partial run; only assert notice when create starts
-      assert.match(result.stdout + result.stderr, /defaulting to frontend-app/);
-    } finally {
-      await rm(dir, { recursive: true, force: true });
-    }
-  });
+  const dir = await sandbox;
+  const previousCwd = process.cwd();
+  try {
+    process.chdir(dir);
+    const output = await captureConsole(() =>
+      runCreate(['notice-app', '--context-path', 'notice']),
+    );
+    assert.match(output, /defaulting to frontend-app/);
+  } finally {
+    process.chdir(previousCwd);
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test('scaffold shell from bundled template-shell', async (t) => {
