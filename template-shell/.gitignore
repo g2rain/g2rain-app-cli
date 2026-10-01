@@ -7,7 +7,6 @@ dist
 .idea
 .vscode
 *.log
-# kits/*.tgz are tracked for Docker/offline builds until @g2rain/* is on npm (TPL-004)
 
 # OpenResty Application-DPoP keys (runtime only)
 lua/keys/*

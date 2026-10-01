@@ -11,7 +11,7 @@
 | `micro-app` | 主子应用事件、消息工厂、类型守卫和 Window 适配 | 新消息需要版本/兼容性和清理设计 |
 | `ErrorMessage` | 页面错误提示；StatusSwitch 的 `notifyStatusSwitch*` | 错误模型用 `@g2rain/http` 的 `G2rainHttpError` 和 `@g2rain/platform/error`，不要再在应用里复制一套 AppError |
 
-通用 UI（`QueryForm`、`TableSort`、`RemoteSelect` / Organ / Dict / StatusSwitch）直接依赖 `@g2rain/ui`，不要经 `@/components` 转发。公共包接入：`@g2rain/theme` + `@g2rain/ui` + `@g2rain/platform` + `@g2rain/http`，均使用仓内 `kits/*.tgz`（见该目录 README），避免 Docker 构建依赖同级 `g2rain-appkit`。生命周期内核使用 `@g2rain/platform/sub` 的 `createStandardSubPlatform`，应用不再保留 `@g2rain/runtime`。
+通用 UI（`QueryForm`、`TableSort`、`RemoteSelect` / Organ / Dict / StatusSwitch）直接依赖 `@g2rain/ui`，不要经 `@/components` 转发。公共包接入：`@g2rain/theme` + `@g2rain/ui` + `@g2rain/platform` + `@g2rain/http`（npm Registry `1.0.0`）。生命周期内核使用 `@g2rain/platform/sub` 的 `createStandardSubPlatform`，应用不再保留 `@g2rain/runtime`。
 
 HTTP 公共内核直接使用 `@g2rain/http`。应用专属的 Client 注册表、Mock、IAM Key、Loading 组合和刷新协调位于 `src/runtime/http`；页面从 `@runtime/http` 获取 Client，不再存在 `src/components/http` 兼容层。装配入口为 `runtime/http/setup.ts` 的 `initHttp()`。
 

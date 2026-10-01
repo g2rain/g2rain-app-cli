@@ -9,7 +9,7 @@
 ## `npm run build` 失败
 
 - 先替换 `.env` 占位符。
-- 确认 `kits/*.tgz` 存在且 `npm install` 成功。
+- 确认 `@g2rain/*@1.0.0` 可从 npm Registry 安装，且 `npm install` 成功。
 - 查看 `vue-tsc` 报错的具体文件；布局组件是否从正确相对路径导入 store。
 
 ## Tab 打不开或关不掉

@@ -12,7 +12,7 @@ npm run build
 
 ## 容器镜像
 
-构建前确认 `kits/*.tgz` 已在仓库中（`Dockerfile` 会在 `npm install` 前拷贝 `kits/`）。缺失会报 `ENOENT .../kits/g2rain-*.tgz`。见偏差 TPL-004。
+构建依赖 npm Registry 上的 `@g2rain/*@1.0.0`；镜像内执行 `npm ci` / `npm install`，不再拷贝本地 kits 制品。
 
 ```bash
 ./build.sh

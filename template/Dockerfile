@@ -6,7 +6,6 @@ WORKDIR /app
 ARG VITE_BUILD_MODE=production
 
 COPY package.json package-lock.json .npmrc ./
-COPY kits/ ./kits/
 # create-g2rain-app 为 file:../g2rain-app-cli；镜像构建不需要 CLI，放最小 stub 以满足 npm ci
 RUN mkdir -p /g2rain-app-cli \
  && printf '%s\n' '{"name":"create-g2rain-app","version":"0.1.0","private":true}' > /g2rain-app-cli/package.json
