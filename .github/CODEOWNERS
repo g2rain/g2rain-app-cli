@@ -1,0 +1,17 @@
+# Template snapshot CODEOWNERS
+# Require org teams to exist and branch protection "Require review from Code Owners".
+
+/template/ @g2rain/template-maintainers
+/template-shell/ @g2rain/template-maintainers
+/template-shell-legacy/ @g2rain/template-maintainers
+/scripts/sync-app-template.mjs @g2rain/template-maintainers
+/scripts/sync-shell-template.mjs @g2rain/template-maintainers
+/scripts/verify-template-snapshots.mjs @g2rain/template-maintainers
+/scripts/template-tree-hash.mjs @g2rain/template-maintainers
+/scripts/lib/template-sync-filter.mjs @g2rain/template-maintainers
+/scripts/lib/template-meta.mjs @g2rain/template-maintainers
+/scripts/assert-ci-publish.mjs @g2rain/release-maintainers
+/.github/workflows/ci.yml @g2rain/release-maintainers
+/.github/workflows/sync-templates.yml @g2rain/release-maintainers
+/.github/workflows/publish-npm.yml @g2rain/release-maintainers
+/.github/workflows/verify-template-snapshots.yml @g2rain/release-maintainers

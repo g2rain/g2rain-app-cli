@@ -1,0 +1,30 @@
+# Local OpenResty sign sidecar for Application-DPoP + IAM key file endpoints.
+# Usage:
+#   ./scripts/generate-sign-keys.sh   # or .ps1
+#   # replace lua/keys/iam-public-key.pem with real IAM PEM
+#   docker compose -f docker-compose.sign.yml up --build
+# Shell .env: for sign-only local test, VITE_BACKEND_ORIGIN=http://localhost:8088
+# Full stack: point VITE_BACKEND_ORIGIN at a host that serves /{{CONTEXT_PATH}}/api|/auth|/lua (main-shell model)
+
+services:
+  shell-sign:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: g2rain-shell-sign
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./lua/keys:/usr/local/openresty/nginx/lua/keys:ro
+    environment:
+      TZ: Asia/Shanghai
+      SERVER_PORT: "8080"
+      CONTEXT_PATH: /{{CONTEXT_PATH}}
+      APPLICATION_CODE: "{{PROJECT_NAME}}"
+      GATEWAY_HOST: host.docker.internal
+      GATEWAY_PORT: "8080"
+      IAM_HOST: host.docker.internal
+      IAM_PORT: "9000"
+      SSO_BASE_URL: ""
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{PROJECT_NAME}}</title>
+    <!-- Runtime env (must load before app; path injected from VITE_CONTEXT_PATH) -->
+    <script>
+      ;(function () {
+        window._env_ = window._env_ || {}
+        window.__g2rainEnvConfigReady__ = new Promise(function (resolve) {
+          var script = document.createElement('script')
+          var basePath = '__G2RAIN_APP_CONTEXT_PATH__'
+          script.src = (basePath === '/' ? '' : basePath) + '/env-config.js'
+          script.onload = function () {
+            resolve()
+          }
+          script.onerror = function () {
+            // Local vite dev has no env-config.js; fall back to import.meta.env
+            console.log('[env-config] env-config.js not found; using build-time env')
+            resolve()
+          }
+          document.head.appendChild(script)
+        })
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

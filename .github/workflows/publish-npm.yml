@@ -1,0 +1,154 @@
+name: Publish npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm-production
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      app_ref: ${{ steps.meta.outputs.app_ref }}
+      app_commit: ${{ steps.meta.outputs.app_commit }}
+      shell_ref: ${{ steps.meta.outputs.shell_ref }}
+      shell_commit: ${{ steps.meta.outputs.shell_commit }}
+      app_http: ${{ steps.meta.outputs.app_http }}
+      shell_http: ${{ steps.meta.outputs.shell_http }}
+    steps:
+      - name: Checkout CLI tag
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          fetch-depth: 0
+
+      - name: Assert tag matches package.json version
+        run: |
+          set -euo pipefail
+          TAG=${GITHUB_REF_NAME}
+          EXPECTED=${TAG#v}
+          ACTUAL=$(node -p "require('./package.json').version")
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "Tag $TAG does not match package.json version $ACTUAL"
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.14'
+          registry-url: https://registry.npmjs.org
+
+      - name: Use current npm
+        run: npm install --global npm@^11.5.1
+
+      - name: Install
+        run: npm ci
+
+      - name: Read snapshot refs
+        id: meta
+        run: |
+          echo "app_ref=$(node -e "console.log(require('./template/.g2rain-template-meta.json').sourceRef)")" >> "$GITHUB_OUTPUT"
+          echo "app_commit=$(node -e "console.log(require('./template/.g2rain-template-meta.json').sourceCommit)")" >> "$GITHUB_OUTPUT"
+          echo "shell_ref=$(node -e "console.log(require('./template-shell/.g2rain-template-meta.json').sourceRef)")" >> "$GITHUB_OUTPUT"
+          echo "shell_commit=$(node -e "console.log(require('./template-shell/.g2rain-template-meta.json').sourceCommit)")" >> "$GITHUB_OUTPUT"
+          echo "app_http=$(node -e "const p=require('./template/package.json'); console.log((p.dependencies||{})['@g2rain/http']||(p.devDependencies||{})['@g2rain/http']||'n/a')")" >> "$GITHUB_OUTPUT"
+          echo "shell_http=$(node -e "const p=require('./template-shell/package.json'); console.log((p.dependencies||{})['@g2rain/http']||(p.devDependencies||{})['@g2rain/http']||'n/a')")" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout app template at meta commit
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: g2rain/g2rain-app-template
+          ref: ${{ steps.meta.outputs.app_commit }}
+          path: .sources/app-template
+          token: ${{ secrets.TEMPLATE_SYNC_TOKEN || github.token }}
+          fetch-depth: 0
+
+      - name: Checkout shell template at meta commit
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: g2rain/g2rain-shell-template
+          ref: ${{ steps.meta.outputs.shell_commit }}
+          path: .sources/shell-template
+          token: ${{ secrets.TEMPLATE_SYNC_TOKEN || github.token }}
+          fetch-depth: 0
+
+      - name: Verify snapshots with rebuild
+        env:
+          G2RAIN_VERIFY_REQUIRE_REBUILD: '1'
+          G2RAIN_TEMPLATE_SOURCE: ${{ github.workspace }}/.sources/app-template
+          G2RAIN_SHELL_TEMPLATE_SOURCE: ${{ github.workspace }}/.sources/shell-template
+        run: npm run verify:template-snapshots
+
+      - name: Test
+        run: npm test
+
+      - name: prepublishOnly
+        run: npm run prepublishOnly
+
+      - name: Pack
+        run: npm pack
+
+      - name: Tarball smoke
+        run: |
+          set -euo pipefail
+          TARBALL=$(ls create-g2rain-app-*.tgz | head -n1)
+          SMOKE=$(mktemp -d)
+          cd "$SMOKE"
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE/$TARBALL"
+          npx create-g2rain-app app smoke-app --context-path smoke
+          npx create-g2rain-app shell smoke-shell --context-path admin --port 3000
+          npx create-g2rain-app shell smoke-shell-legacy --context-path admin --port 3000 --with-legacy
+          (cd smoke-app && npm install && npm run build)
+          (cd smoke-shell && npm install && npm run build)
+          (cd smoke-shell-legacy && npm install && npm run build)
+
+      # Bootstrap: use Environment secret NPM_PUBLISH_TOKEN on npm-production
+      # (manual approval). Do NOT put this token in repository secrets.
+      # After npm Trusted Publishing is configured, remove the token and restore
+      # OIDC-only publish (empty / omitted NODE_AUTH_TOKEN + provenance).
+      - name: Publish to npm (bootstrap Environment token)
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout CLI tag
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          NOTES=$(mktemp)
+          cat > "$NOTES" <<EOF
+          ## create-g2rain-app v${VERSION}
+
+          ### Embedded templates
+          - App: g2rain-app-template@${{ needs.publish.outputs.app_ref }} (\`${{ needs.publish.outputs.app_commit }}\`)
+          - Shell: g2rain-shell-template@${{ needs.publish.outputs.shell_ref }} (\`${{ needs.publish.outputs.shell_commit }}\`)
+          - Legacy overlay: included (optional \`--with-legacy\` only; not default protocol)
+
+          ### AppKit dependency pins (from templates)
+          - App \`@g2rain/http\`: ${{ needs.publish.outputs.app_http }}
+          - Shell \`@g2rain/http\`: ${{ needs.publish.outputs.shell_http }}
+
+          ### Notes
+          - First releases may use Environment secret NPM_PUBLISH_TOKEN; target is OIDC Trusted Publishing.
+          - Do not edit CLI \`template*\` directories by hand; use sync-templates workflow.
+          EOF
+          gh release create "$GITHUB_REF_NAME" --title "create-g2rain-app v${VERSION}" --notes-file "$NOTES"

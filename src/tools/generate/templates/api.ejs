@@ -1,0 +1,71 @@
+/**
+ * <%= table.title %>相关 API 服务
+ * 提供<%= table.title %>数据的 CRUD 操作接口
+ */
+
+import { getHttpClient } from '@runtime/http';
+import type { <%= table.camelName %>, <%= table.camelName %>Payload, <%= table.camelName %>Query } from './type';
+import type { PageData, PageSelectListDto } from '@platform/types/api.type';
+
+// 导入 mock 数据以触发自动注册（副作用导入）
+import './mock';
+
+/**
+ * <%= table.title %> API 服务类
+ */
+export class <%= table.camelName %>Api {
+  /**
+   * 获取<%= table.title %>列表
+   * @param params 查询参数（可选）
+   * @returns <%= table.title %>列表
+   */
+  static async list(params?: <%= table.camelName %>Query): Promise<<%= table.camelName %>[]> {
+    const http = getHttpClient('default');
+    const res = await http.get<<%= table.camelName %>[]>('<%= table.routePath %>/list', params);
+    return res.data || [];
+  }
+
+  /**
+   * 分页查询<%= table.title %>列表
+   * @param params 查询参数（继承PageSelectListDto，包含基础查询和业务查询条件）
+   * @returns 分页数据
+   */
+  static async page(params: <%= table.camelName %>Query & PageSelectListDto): Promise<PageData<<%= table.camelName %>>> {
+    const http = getHttpClient('default');
+    const res = await http.get<PageData<<%= table.camelName %>>>('<%= table.routePath %>/page', params);
+    return res.data;
+  }
+
+  /**
+   * 按 ID 查询单条明细
+   * @param id <%= table.title %> ID
+   * @returns <%= table.title %>详情
+   */
+  static async getById(id: number): Promise<<%= table.camelName %>> {
+    const http = getHttpClient('default');
+    const res = await http.get<<%= table.camelName %>>(`<%= table.routePath %>/${id}`);
+    return res.data;
+  }
+
+  /**
+   * 保存<%= table.title %>（新增或更新）
+   * 如果 payload 中包含 id，则为更新；否则为新增
+   * @param payload <%= table.title %>数据（包含 id 时为更新，不包含时为新增）
+   * @returns 保存后的<%= table.title %>
+   */
+  static async save(payload: <%= table.camelName %>Payload): Promise<<%= table.camelName %>> {
+    const http = getHttpClient('default');
+    const res = await http.post<<%= table.camelName %>>('<%= table.routePath %>/save', payload);
+    return res.data;
+  }
+
+  /**
+   * 删除<%= table.title %>
+   * @param id <%= table.title %> ID
+   */
+  static async remove(id: number): Promise<void> {
+    const http = getHttpClient('default');
+    await http.delete(`<%= table.routePath %>/${id}`);
+  }
+}
+

@@ -1,14 +1,19 @@
 schemaVersion: 1
 name: g2rain-app-cli
 family: frontend-tooling-cli
-role: 从 g2rain-app-template 创建前端 App 工程
+role: 创建 frontend-app 业务子应用与 frontend-shell Main Shell 工程
 package:
   name: create-g2rain-app
-  version: 0.1.0
+  version: 1.0.0
   private: false
   license: Apache-2.0
   files:
     - dist
+    - template
+    - template-shell
+    - template-shell-legacy
+    - LICENSE
+    - README.md
   bins:
     create-g2rain-app: dist/index.js
     g2rain-app: dist/index.js
@@ -16,28 +21,82 @@ package:
 architecture:
   type: frontend-tooling-cli
   status: project-local
-  note: CLI 内部架构为项目专属；其跨项目输出契约由中央 frontend-app scaffolding policy 管理。
+  note: CLI 内部架构为项目专属；通过 family registry 输出 frontend-app / frontend-shell。
   deviations: docs/architecture/deviations.md
+  familyRegistry: src/families/
 
 centralContract:
   repository: https://github.com/g2rain/g2rain
   ref: feature/g2rain-architectur-init
-  profile: docs/architecture/profiles/frontend-app
-  policy: docs/architecture/profiles/frontend-app/scaffolding-policy.md
-  generatedProjectProfileVersion: 1.0.0-draft
+  profiles:
+    - path: docs/architecture/profiles/frontend-app
+      policy: docs/architecture/profiles/frontend-app/scaffolding-policy.md
+    - path: docs/architecture/profiles/frontend-shell
+      policy: docs/architecture/profiles/frontend-shell/shell-generation-policy.md
+  generatedProjectProfileVersion:
+    frontend-app: 1.0.0-draft
+    frontend-shell: 1.0.0
+
+families:
+  frontend-app:
+    alias: app
+    templateRepository: https://github.com/g2rain/g2rain-app-template
+    bundledDir: template
+    localOverrideEnv: G2RAIN_TEMPLATE_PATH
+    syncCommand: npm run sync:template
+    syncSourceEnv: G2RAIN_TEMPLATE_SOURCE
+    syncRefEnv: G2RAIN_APP_TEMPLATE_REF
+    localSyncGateEnv: G2RAIN_ALLOW_LOCAL_SYNC
+    embeddedMeta: template/.g2rain-template-meta.json
+    embeddedSnapshotNotice: template/.g2rain-template-snapshot.md
+    metaSchemaVersion: 2
+  frontend-shell:
+    alias: shell
+    templateRepository: https://github.com/g2rain/g2rain-shell-template
+    bundledDir: template-shell
+    legacyOverlayBundledDir: template-shell-legacy
+    legacyOverlaySource: legacy-overlay
+    withLegacyFlag: --with-legacy
+    localOverrideEnv: G2RAIN_SHELL_TEMPLATE_PATH
+    syncCommand: npm run sync:template:shell
+    syncSourceEnv: G2RAIN_SHELL_TEMPLATE_SOURCE
+    syncRefEnv: G2RAIN_SHELL_TEMPLATE_REF
+    localSyncGateEnv: G2RAIN_ALLOW_LOCAL_SYNC
+    embeddedMeta: template-shell/.g2rain-template-meta.json
+    embeddedSnapshotNotice: template-shell/.g2rain-template-snapshot.md
+    metaSchemaVersion: 2
+    defaults:
+      contextPath: admin
+      port: 3000
+      withLegacy: false
 
 template:
   repository: https://github.com/g2rain/g2rain-app-template
   localOverrideEnv: G2RAIN_TEMPLATE_PATH
-  defaultResolution: 相对 dist 查找相邻 g2rain-app-template，不存在时从 GitHub 克隆
-  pinnedRef: null
+  defaultResolution: 包内 template/ 快照；可用 G2RAIN_TEMPLATE_PATH 覆盖
+  syncCommand: npm run sync:template
+  syncSourceEnv: G2RAIN_TEMPLATE_SOURCE
+  syncRefEnv: G2RAIN_APP_TEMPLATE_REF
+  formalSync: .github/workflows/sync-templates.yml
+  verifyCommand: npm run verify:template-snapshots
+  snapshotGovernance: docs/template-snapshots.md
+  embeddedMeta: template/.g2rain-template-meta.json
+  pinnedRef: embedded-snapshot-tag
   excluded:
     - node_modules
     - dist
     - .git
     - .idea
+    - .vscode
     - .DS_Store
     - package-lock.json
+    - .env.local
+    - "*.pem"
+    - "*.der"
+    - "*.p12"
+    - "*.jks"
+    - .g2rain-template-meta.json
+    - .g2rain-template-snapshot.md
   placeholders:
     - "{{PROJECT_NAME}}"
     - "{{CONTEXT_PATH}}"
@@ -72,6 +131,10 @@ commands:
   dev: npm run dev
   interactive: npx create-g2rain-app
   nonInteractive: npx create-g2rain-app <project-name> --context-path <context-path>
+  generate: g2rain-app generate --tables=<tables>
+  buildConfig: g2rain-app build-config
+  syncTemplates: npm run sync:templates
+  verifyTemplateSnapshots: npm run verify:template-snapshots
   packageDryRun: npm pack --dry-run
 
 toolchain:
@@ -84,9 +147,11 @@ toolchain:
 
 validation:
   buildCommand: npm run build
-  unitTests: false
+  unitTests: true
   lint: false
   integrationScript: npm test
+  ciWorkflow: .github/workflows/ci.yml
+  requiredStatusCheck: CI / test
   manualCliSmokeTestRequired: true
 
 community:
@@ -109,6 +174,7 @@ gitWorkflow:
 
 documentation:
   entry: docs/index.md
+  usage: docs/development/usage.md
   agentEntry: AGENTS.md
   required:
     - docs/project.yaml
@@ -118,12 +184,15 @@ documentation:
     - docs/architecture/boundaries.md
     - docs/architecture/deviations.md
     - docs/development/local-development.md
+    - docs/development/usage.md
     - docs/development/command-interface.md
     - docs/development/template-contract.md
+    - docs/template-snapshots.md
     - docs/development/testing.md
     - docs/development/definition-of-done.md
     - docs/development/git-workflow.md
     - docs/operations/publishing.md
+    - docs/operations/github-release-governance.md
     - docs/operations/troubleshooting.md
     - docs/security/security-boundaries.md
     - docs/requirements/README.md

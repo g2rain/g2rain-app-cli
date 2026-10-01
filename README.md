@@ -8,50 +8,63 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-%3E%3D22-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 
-g2rain 官方前端项目创建 CLI。它以 [g2rain-app-template](https://github.com/g2rain/g2rain-app-template) 为模板，交互式或参数式采集项目名与 Context Path，复制模板、排除开发产物、替换占位符并生成新的微前端 App。
+g2rain 官方前端 CLI。支持两个项目族：
 
-CLI 本身是 Node 工具，不直接采用中央 `frontend-app` 运行时分层；它生成的项目必须采用中央 [`frontend-app 1.0.0-draft`](https://github.com/g2rain/g2rain/tree/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app)。CLI 与模板的中央契约见[项目脚手架规范](https://github.com/g2rain/g2rain/blob/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app/scaffolding-policy.md)。
+- `frontend-app`：内嵌 [g2rain-app-template](https://github.com/g2rain/g2rain-app-template) → 包内 `template/`
+- `frontend-shell`：内嵌 [g2rain-shell-template](https://github.com/g2rain/g2rain-shell-template) → 包内 `template-shell/`；可选 `template-shell-legacy/`（`--with-legacy`）
 
-[官网](https://www.g2rain.com) · [完整文档](docs/index.md) · [命令接口](docs/development/command-interface.md) · [模板契约](docs/development/template-contract.md) · [Issues](https://github.com/g2rain/g2rain/issues) · [Discussions](https://github.com/g2rain/g2rain/discussions)
+并提供 `generate` / `build-config` 开发期工具（仅业务子应用）。未指定 family 时默认生成 `frontend-app`。
+
+CLI 本身是 Node 工具；生成结果须分别符合中央 [`frontend-app`](https://github.com/g2rain/g2rain/tree/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app) 与 [`frontend-shell`](https://github.com/g2rain/g2rain/tree/architecture-v1.2.0/docs/architecture/profiles/frontend-shell) Profile。
+
+[官网](https://www.g2rain.com) · [完整文档](docs/index.md) · [使用手册](docs/development/usage.md) · [命令接口](docs/development/command-interface.md) · [模板契约](docs/development/template-contract.md) · [模板快照治理](docs/template-snapshots.md) · [Issues](https://github.com/g2rain/g2rain/issues) · [Discussions](https://github.com/g2rain/g2rain/discussions)
 
 ## 功能
 
-- 提供 `create-g2rain-app` 和 `g2rain-app` 两个等价命令。
-- 支持交互式输入，也支持项目名与 `--context-path` 参数。
-- 优先使用 `G2RAIN_TEMPLATE_PATH` 或本地相邻模板；不存在时克隆 GitHub 模板。
-- 拒绝覆盖已存在的目标目录。
-- 复制时排除 `.git`、`.idea`、`node_modules`、`dist`、`.DS_Store` 和模板 `package-lock.json`，避免继承模板 Git/IDE 状态。
-- 重写生成项目的 npm 包名、仓库地址和主页，替换固定文件中的 `{{PROJECT_NAME}}` 与 `{{CONTEXT_PATH}}`。
-- 将 `README.md`、`AGENTS.md` 和 `docs/**` 中的模板维护身份转换为业务 App 身份，并记录 CLI 版本、模板仓库与模板 Commit。
+- 提供 `create-g2rain-app` 和 `g2rain-app` 两个等价 bin。
+- 子命令：`app`、`shell`、`create`（可省略）、`generate`、`build-config`；支持 `--help` / `--version`。
+- `app` / 默认 create：包内 `template/`；`G2RAIN_TEMPLATE_PATH` 可覆盖。
+- `shell`：包内 `template-shell/`；`G2RAIN_SHELL_TEMPLATE_PATH` 可覆盖；默认 contextPath=`admin`、port=`3000`；可选 `--with-legacy`（merge `template-shell-legacy/`，默认不含）。
+- generate / build-config：仅服务 frontend-app 工程。
 
-CLI 只生成文件，不自动安装依赖、不初始化 Git、不注册 main-shell/平台资源，也不实现生成项目的业务功能。
+CLI 不自动安装依赖、不初始化 Git、不注册平台资源。不得用 app 模板冒充 Shell。
 
 ## 环境
 
 - Node.js `>=22`
 - npm
-- Git（本地没有模板、需要自动克隆时）
 
 ## 安装与运行
 
-从 npm 执行：
+创建业务子应用：
 
 ```bash
-npx create-g2rain-app my-member-app --context-path member
+create-g2rain-app app my-member-app --context-path member
 ```
 
-安装后使用任一命令：
+创建 Main Shell：
+
+```bash
+create-g2rain-app shell my-admin-shell --context-path admin --port 3000
+```
+
+创建带存量双协议兼容的 Main Shell（迁移期）：
+
+```bash
+create-g2rain-app shell my-admin-shell --context-path admin --port 3000 --with-legacy
+```
+
+兼容旧写法（默认 frontend-app）：
 
 ```bash
 create-g2rain-app my-member-app --context-path member
-g2rain-app my-member-app --context-path member
 ```
 
-使用本地模板：
+本地开发覆盖模板源仓：
 
 ```powershell
 $env:G2RAIN_TEMPLATE_PATH = 'D:\github\g2rain-app-template'
-npx create-g2rain-app my-member-app --context-path member
+$env:G2RAIN_SHELL_TEMPLATE_PATH = 'D:\github\g2rain-shell-template'
 ```
 
 生成位置是“当前工作目录下的项目名目录”，所以应先 `cd` 到明确的父目录。
@@ -62,7 +75,7 @@ npx create-g2rain-app my-member-app --context-path member
 > npx create-g2rain-app
 ? Project name › g2rain-new-app
 ? Context path (URL prefix, without leading slash) › new
-➜ Using template: .../g2rain-app-template
+➜ Using template: .../create-g2rain-app/template
 ✔ Project created at .../g2rain-new-app
   context path: /new
 ```
@@ -77,7 +90,18 @@ npx create-g2rain-app g2rain-member-app --context_path member
 npx create-g2rain-app g2rain-member-app member
 ```
 
-当前未知选项会被忽略，项目名和 Context Path 的字符校验也较弱；自动化调用必须只使用已文档化参数，并在生成后检查目录和文件。相关风险见[架构偏差](docs/architecture/deviations.md)。
+当前未知选项会报错退出；项目名和 Context Path 的字符校验仍较弱。详见[架构偏差](docs/architecture/deviations.md)与[命令接口](docs/development/command-interface.md)。
+
+### 在已有 App 中使用生成工具
+
+```bash
+# App 根目录；需安装 create-g2rain-app 为 devDependency
+npm run build:generate -- --tables=member
+npm run build:config
+# 或直接：
+g2rain-app generate --tables=member,member_identity
+g2rain-app build-config
+```
 
 ## 生成流程
 
@@ -89,10 +113,9 @@ flowchart TD
   Prompt --> Target
   Target --> Exists{目录已存在?}
   Exists -->|是| Stop[拒绝覆盖]
-  Exists -->|否| Template{模板存在?}
-  Template -->|否| Clone[git clone g2rain-app-template]
+  Exists -->|否| Template{包内 template 或覆盖路径?}
+  Template -->|否| Fail[报错退出]
   Template -->|是| Copy[过滤并复制]
-  Clone --> Copy
   Copy --> Replace[重写 package + 替换占位符]
   Replace --> Done[输出后续命令]
 ```
@@ -128,6 +151,18 @@ npm run build
 ```bash
 npm ci
 npm run build
+npm run verify:template-snapshots
+```
+
+正式刷新包内模板由 GitHub Actions `sync-templates` 完成。本地排障：
+
+```powershell
+$env:G2RAIN_ALLOW_LOCAL_SYNC = '1'
+$env:G2RAIN_APP_TEMPLATE_REF = 'vX.Y.Z'
+$env:G2RAIN_SHELL_TEMPLATE_REF = 'vA.B.C'
+# 可选：$env:G2RAIN_TEMPLATE_SOURCE / G2RAIN_SHELL_TEMPLATE_SOURCE
+npm run sync:templates
+npm run verify:template-snapshots
 ```
 
 本地验证编译产物：
@@ -137,20 +172,13 @@ npm link
 g2rain-app test-app --context-path test
 ```
 
-`npm run dev` 会直接执行生成流程并在当前工作目录创建项目；不要在含同名重要目录的位置随意运行。推荐使用临时目录和 `G2RAIN_TEMPLATE_PATH` 验证。
+`npm run dev` 会直接执行生成流程并在当前工作目录创建项目；不要在含同名重要目录的位置随意运行。推荐使用临时目录验证。
 
-当前仓库没有单元测试、lint 或专用 CLI 集成测试脚本，`npm run build` 只执行 TypeScript 编译。测试策略见[测试](docs/development/testing.md)。
+测试：`npm test`。策略见[测试](docs/development/testing.md)。
 
 ## 发布
 
-npm 包名为 `create-g2rain-app`，只发布 `dist`，两个 bin 都指向 `dist/index.js`。发布前必须先构建并检查 tarball：
-
-```bash
-npm run build
-npm pack --dry-run
-```
-
-当前没有 `prepublishOnly` 自动构建，也没有固定模板 Tag；发布者必须确认 dist 与源码一致，并评估模板版本兼容性。详见[发布](docs/operations/publishing.md)。
+npm 包名为 `create-g2rain-app`，发布 `dist` 与三份内嵌模板快照。正式发布：合并 sync PR → 打 CLI `v*` tag → `publish-npm`（OIDC Trusted Publishing）。本地只运行 `npm pack --dry-run`，不要 `npm publish`。详见[发布](docs/operations/publishing.md)与[模板快照治理](docs/template-snapshots.md)。
 
 ## 文档
 
@@ -158,7 +186,7 @@ npm pack --dry-run
 | --- | --- |
 | 项目事实与 Agent | [project.yaml](docs/project.yaml) · [AGENTS.md](AGENTS.md) |
 | 架构与边界 | [架构概览](docs/architecture/overview.md) · [运行流程](docs/architecture/runtime-flow.md) · [偏差](docs/architecture/deviations.md) |
-| 命令与模板 | [命令接口](docs/development/command-interface.md) · [模板契约](docs/development/template-contract.md) |
+| 命令与模板 | [使用手册](docs/development/usage.md) · [命令接口](docs/development/command-interface.md) · [模板契约](docs/development/template-contract.md) · [快照治理](docs/template-snapshots.md) |
 | 开发与交付 | [本地开发](docs/development/local-development.md) · [测试](docs/development/testing.md) · [发布](docs/operations/publishing.md) |
 | 安全 | [安全边界](docs/security/security-boundaries.md) · [漏洞报告](SECURITY.md) |
 

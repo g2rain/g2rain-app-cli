@@ -1,0 +1,85 @@
+schemaVersion: 1
+name: "{{PROJECT_NAME}}"
+repository: g2rain/g2rain-shell-template
+family: frontend-shell-template
+role: G2rain Main Shell 官方脚手架模板（由 create-g2rain-app shell 复制生成主应用）
+architecture:
+  centralRepository: g2rain/g2rain
+  baselineRef: architecture-v1.2.0
+  baseProfile:
+    path: docs/architecture/profiles/frontend-app
+    version: 1.0.0
+  profile:
+    path: docs/architecture/profiles/frontend-shell
+    version: 1.0.0
+    status: template
+  deviations: docs/architecture/deviations.md
+ownership:
+  owns:
+    - Main Shell 模板源码与文档树
+    - 全局布局、菜单、Tab、Workspace 基线
+    - Platform Main / HTTP / Theme / UI 组合根接线点
+    - qiankun RuntimeAdapter 与实例队列扩展位
+    - Nginx Context Path 示例与环境变量占位符约定
+  excludes:
+    - create-g2rain-app CLI 实现（见 g2rain-app-cli）
+    - 生产主应用业务定制（生成后的仓库自行演进）
+    - 子应用业务页面与领域规则
+    - IAM Token 签发与 Gateway 最终鉴权
+toolchain:
+  node: ">=22"
+  packageManager: npm
+  framework: Vue 3.5
+  language: TypeScript 5.9
+  bundler: Vite 7
+  microFrontend: qiankun 2.10
+  state: Pinia 3
+runtime:
+  applicationCode: "{{PROJECT_NAME}}"
+  contextPath: "/{{CONTEXT_PATH}}"
+  devServerPort: "{{DEV_SERVER_PORT}}"
+  recommendedDefaults:
+    contextPath: /admin
+    devServerPort: 3000
+  subAppContract:
+    - applicationCode
+    - viewId
+    - instanceId
+    - appKey
+    - name
+    - entry
+    - contextPath
+    - activeRule
+placeholders:
+  - "{{PROJECT_NAME}}"
+  - "{{CONTEXT_PATH}}"
+  - "{{DEV_SERVER_PORT}}"
+commands:
+  install: npm install
+  dev: npm run dev
+  verify: npm run build
+  preview: npm run preview
+collaborators:
+  - repository: g2rain/g2rain-app-cli
+    role: 脚手架复制与占位符替换（shell 子命令）
+  - repository: g2rain/g2rain-main-shell
+    role: 生产参考主应用实现
+  - repository: g2rain/g2rain-appkit
+    role: platform/main、http、theme、ui 契约与生成规范
+  - repository: g2rain/g2rain-member-app
+    role: 推荐联调子应用（接入 /sub 后）
+documentation:
+  entry: docs/index.md
+  agentEntry: AGENTS.md
+  platformMainAdoption: docs/development/platform-main-adoption.md
+  uiThemeAdoption: docs/development/ui-theme-adoption.md
+  localDevelopment: docs/development/local-development.md
+aiCoding:
+  activeRequirement: null
+  requirementTemplate: docs/requirements/README.md
+  validation:
+    - 读取中央 frontend-app / frontend-shell Profile、本地偏差、需求和 Git Diff
+    - 涉及 Platform Main 时读取中央 Main Shell 契约、appkit Main 接入手册与本仓 platform-main-adoption
+    - 核对 docs 必填树与 docs/index.md、project.yaml 索引一致
+    - 替换 .env 占位符后执行 npm run build
+    - 检查文档链接、配置路径、跨应用契约和敏感信息边界

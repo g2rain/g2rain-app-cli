@@ -1,0 +1,180 @@
+name: Sync templates
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_template_ref:
+        description: "g2rain-app-template Git tag (optional if shell_template_ref set)"
+        required: false
+        type: string
+      shell_template_ref:
+        description: "g2rain-shell-template Git tag (optional if app_template_ref set)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-templates
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require at least one template ref
+        env:
+          APP_REF: ${{ inputs.app_template_ref }}
+          SHELL_REF: ${{ inputs.shell_template_ref }}
+        run: |
+          if [ -z "${APP_REF}" ] && [ -z "${SHELL_REF}" ]; then
+            echo "Provide app_template_ref and/or shell_template_ref"
+            exit 1
+          fi
+
+      - name: Checkout CLI
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          fetch-depth: 0
+
+      - name: Checkout app template
+        if: ${{ inputs.app_template_ref != '' }}
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: g2rain/g2rain-app-template
+          ref: ${{ inputs.app_template_ref }}
+          path: .sources/app-template
+          token: ${{ secrets.TEMPLATE_SYNC_TOKEN || github.token }}
+          fetch-depth: 0
+
+      - name: Checkout shell template
+        if: ${{ inputs.shell_template_ref != '' }}
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: g2rain/g2rain-shell-template
+          ref: ${{ inputs.shell_template_ref }}
+          path: .sources/shell-template
+          token: ${{ secrets.TEMPLATE_SYNC_TOKEN || github.token }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.14'
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: npm ci
+
+      - name: Sync app template
+        if: ${{ inputs.app_template_ref != '' }}
+        env:
+          G2RAIN_TEMPLATE_SOURCE: ${{ github.workspace }}/.sources/app-template
+          G2RAIN_APP_TEMPLATE_REF: ${{ inputs.app_template_ref }}
+        run: npm run sync:template
+
+      - name: Sync shell template
+        if: ${{ inputs.shell_template_ref != '' }}
+        env:
+          G2RAIN_SHELL_TEMPLATE_SOURCE: ${{ github.workspace }}/.sources/shell-template
+          G2RAIN_SHELL_TEMPLATE_REF: ${{ inputs.shell_template_ref }}
+        run: npm run sync:template:shell
+
+      - name: Read snapshot commits for rebuild sources
+        id: existing
+        run: |
+          echo "app_commit=$(node -e "console.log(require('./template/.g2rain-template-meta.json').sourceCommit)")" >> "$GITHUB_OUTPUT"
+          echo "shell_commit=$(node -e "console.log(require('./template-shell/.g2rain-template-meta.json').sourceCommit)")" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout app source for rebuild when not synced this run
+        if: ${{ inputs.app_template_ref == '' }}
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: g2rain/g2rain-app-template
+          ref: ${{ steps.existing.outputs.app_commit }}
+          path: .sources/app-template
+          token: ${{ secrets.TEMPLATE_SYNC_TOKEN || github.token }}
+          fetch-depth: 0
+
+      - name: Checkout shell source for rebuild when not synced this run
+        if: ${{ inputs.shell_template_ref == '' }}
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: g2rain/g2rain-shell-template
+          ref: ${{ steps.existing.outputs.shell_commit }}
+          path: .sources/shell-template
+          token: ${{ secrets.TEMPLATE_SYNC_TOKEN || github.token }}
+          fetch-depth: 0
+
+      - name: Verify snapshots (with rebuild)
+        env:
+          G2RAIN_VERIFY_REQUIRE_REBUILD: '1'
+          G2RAIN_TEMPLATE_SOURCE: ${{ github.workspace }}/.sources/app-template
+          G2RAIN_SHELL_TEMPLATE_SOURCE: ${{ github.workspace }}/.sources/shell-template
+        run: npm run verify:template-snapshots
+
+      - name: Test
+        run: npm test
+
+      - name: Pack
+        run: npm pack
+
+      - name: Tarball smoke (app + shell + legacy)
+        run: |
+          set -euo pipefail
+          TARBALL=$(ls create-g2rain-app-*.tgz | head -n1)
+          SMOKE=$(mktemp -d)
+          cd "$SMOKE"
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE/$TARBALL"
+          npx create-g2rain-app app smoke-app --context-path smoke
+          test ! -f smoke-app/.g2rain-template-meta.json
+          test ! -f smoke-app/.g2rain-template-snapshot.md
+          npx create-g2rain-app shell smoke-shell --context-path admin --port 3000
+          test ! -d smoke-shell/src/platform/legacy
+          test ! -f smoke-shell/.g2rain-template-meta.json
+          npx create-g2rain-app shell smoke-shell-legacy --context-path admin --port 3000 --with-legacy
+          test -f smoke-shell-legacy/src/platform/legacy/registry.ts
+          (cd smoke-app && npm install && npm run build)
+          (cd smoke-shell && npm install && npm run build)
+          (cd smoke-shell-legacy && npm install && npm run build)
+
+      - name: Collect AppKit versions
+        id: appkit
+        run: |
+          APP_HTTP=$(node -e "const p=require('./template/package.json'); console.log((p.dependencies||{})['@g2rain/http']||(p.devDependencies||{})['@g2rain/http']||'n/a')")
+          SHELL_HTTP=$(node -e "const p=require('./template-shell/package.json'); console.log((p.dependencies||{})['@g2rain/http']||(p.devDependencies||{})['@g2rain/http']||'n/a')")
+          echo "app_http=$APP_HTTP" >> "$GITHUB_OUTPUT"
+          echo "shell_http=$SHELL_HTTP" >> "$GITHUB_OUTPUT"
+          APP_META=$(node -e "const m=require('./template/.g2rain-template-meta.json'); console.log(m.sourceRef+' '+m.sourceCommit)")
+          SHELL_META=$(node -e "const m=require('./template-shell/.g2rain-template-meta.json'); console.log(m.sourceRef+' '+m.sourceCommit)")
+          echo "app_meta=$APP_META" >> "$GITHUB_OUTPUT"
+          echo "shell_meta=$SHELL_META" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update PR
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/sync-templates
+          delete-branch: false
+          title: chore(templates): sync managed template snapshots
+          body: |
+            ## Summary
+            - App template input: `${{ inputs.app_template_ref || '(unchanged)' }}`
+            - Shell template input: `${{ inputs.shell_template_ref || '(unchanged)' }}`
+            - App snapshot: `${{ steps.appkit.outputs.app_meta }}`
+            - Shell snapshot: `${{ steps.appkit.outputs.shell_meta }}`
+            - Legacy overlay: present
+            - App `@g2rain/http`: `${{ steps.appkit.outputs.app_http }}`
+            - Shell `@g2rain/http`: `${{ steps.appkit.outputs.shell_http }}`
+            - CLI test: passed
+            - Tarball smoke test: passed
+
+            Do not edit snapshot directories by hand.
+          commit-message: chore(templates): sync managed template snapshots
+          add-paths: |
+            template
+            template-shell
+            template-shell-legacy

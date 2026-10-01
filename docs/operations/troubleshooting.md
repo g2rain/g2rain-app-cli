@@ -8,10 +8,13 @@
 
 ## 找不到模板
 
-- 设置 `G2RAIN_TEMPLATE_PATH` 为完整本地模板绝对路径。
-- 自动 clone 需要 Git 和 GitHub 网络访问。
-- 路径存在但内容不完整时，当前 CLI 不会自动重新 clone；检查 package.json 和模板目录。
-- clone 失败后可能留下半成品目录，确认路径后再手工处理。
+- 默认应使用包内 `template/` / `template-shell/`。若缺失：通过 GitHub Actions `sync-templates` 同步，或本地排障：
+  - `G2RAIN_ALLOW_LOCAL_SYNC=1`
+  - `G2RAIN_APP_TEMPLATE_REF` / `G2RAIN_SHELL_TEMPLATE_REF`（Git tag）
+  - `npm run sync:templates` 后 `npm run verify:template-snapshots`
+- 开发覆盖：设置 `G2RAIN_TEMPLATE_PATH` / `G2RAIN_SHELL_TEMPLATE_PATH` 为完整本地模板绝对路径，且该目录含 `package.json`。
+- 路径存在但内容不完整时，CLI 不会自动修复；检查 `package.json` 与模板目录。
+- 若 create 报 meta `unknown`：快照过期或未完成 schema v2 同步，重新跑 sync workflow。
 
 ## Target directory already exists
 
@@ -34,4 +37,4 @@ CLI 当前排除模板 package-lock，因此新项目先执行 `npm install` 生
 
 ## npm 发布后仍执行旧代码
 
-检查 package version、npm 缓存和 tarball 内 dist。当前没有 prepublish 自动构建，可能发布陈旧 dist；发布修复版本，不能覆盖原版本。
+检查 package version、npm 缓存和 tarball 内 `dist`/`template*`。确认已合并最新 sync PR；发布修复版本，不能覆盖原版本。
