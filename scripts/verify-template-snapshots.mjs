@@ -3,8 +3,7 @@
  * Verify embedded template snapshots (meta v2, content hash, structure).
  *
  * Env:
- * - G2RAIN_VERIFY_REQUIRE_REBUILD=1 — fail if source cannot be rebuilt
- * - GITHUB_ACTIONS=true — same as require rebuild
+ * - G2RAIN_VERIFY_REQUIRE_REBUILD=1 — fail if a supplied source cannot be rebuilt
  * - G2RAIN_TEMPLATE_SOURCE / G2RAIN_SHELL_TEMPLATE_SOURCE — local checkouts at meta commit
  */
 import path from 'node:path';
@@ -12,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import fse from 'fs-extra';
 import os from 'node:os';
 import {
+  includeInTreeHash,
   shouldCopyApp,
   shouldCopyOverlay,
   shouldCopyShell,
@@ -97,6 +97,7 @@ async function listContentFiles(dir) {
       }
       const child = path.join(abs, name);
       const childRel = rel ? `${rel}/${name}` : name;
+      if (!includeInTreeHash(childRel)) continue;
       const st = await fse.lstat(child);
       if (st.isSymbolicLink()) {
         throw new Error(`Symlink not allowed: ${childRel}`);
@@ -162,9 +163,7 @@ function resolveGitRoot(envVar, defaultSibling) {
 }
 
 async function maybeRebuild(label, meta, snapshotRoot, filter, envVar, siblingName, subdir) {
-  const requireRebuild =
-    process.env.G2RAIN_VERIFY_REQUIRE_REBUILD === '1' ||
-    process.env.GITHUB_ACTIONS === 'true';
+  const requireRebuild = process.env.G2RAIN_VERIFY_REQUIRE_REBUILD === '1';
 
   const gitRoot = resolveGitRoot(envVar, siblingName);
   if (!(await fse.pathExists(gitRoot))) {
@@ -232,31 +231,36 @@ async function main() {
     `✔ template-shell-legacy/ meta + hash + required files OK (${legacyMeta.sourceRef})`,
   );
 
-  await maybeRebuild(
-    'template/',
-    appMeta,
-    appRoot,
-    shouldCopyApp,
-    'G2RAIN_TEMPLATE_SOURCE',
-    'g2rain-app-template',
-  );
-  await maybeRebuild(
-    'template-shell/',
-    shellMeta,
-    shellRoot,
-    shouldCopyShell,
-    'G2RAIN_SHELL_TEMPLATE_SOURCE',
-    'g2rain-shell-template',
-  );
-  await maybeRebuild(
-    'template-shell-legacy/',
-    legacyMeta,
-    legacyRoot,
-    shouldCopyOverlay,
-    'G2RAIN_SHELL_TEMPLATE_SOURCE',
-    'g2rain-shell-template',
-    'legacy-overlay',
-  );
+  // A package snapshot is self-contained. Rebuilding is an opt-in diagnostic
+  // operation only; ordinary local/CI/release verification must not depend on
+  // reachability of an old cross-repository commit.
+  if (process.env.G2RAIN_VERIFY_REQUIRE_REBUILD === '1') {
+    await maybeRebuild(
+      'template/',
+      appMeta,
+      appRoot,
+      shouldCopyApp,
+      'G2RAIN_TEMPLATE_SOURCE',
+      'g2rain-app-template',
+    );
+    await maybeRebuild(
+      'template-shell/',
+      shellMeta,
+      shellRoot,
+      shouldCopyShell,
+      'G2RAIN_SHELL_TEMPLATE_SOURCE',
+      'g2rain-shell-template',
+    );
+    await maybeRebuild(
+      'template-shell-legacy/',
+      legacyMeta,
+      legacyRoot,
+      shouldCopyOverlay,
+      'G2RAIN_SHELL_TEMPLATE_SOURCE',
+      'g2rain-shell-template',
+      'legacy-overlay',
+    );
+  }
 
   console.log('✔ All template snapshots verified');
 }

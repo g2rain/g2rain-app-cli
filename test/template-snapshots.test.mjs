@@ -156,6 +156,20 @@ test('tree hash is deterministic and ignores markers', async (t) => {
   assert.notEqual(h1, h3);
 });
 
+test('tree hash is stable across LF and CRLF text checkouts', async (t) => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'g2rain-hash-eol-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const file = path.join(dir, 'README.md');
+
+  await writeFile(file, 'line one\nline two\n', 'utf8');
+  const lfHash = await hashTemplateTree(dir);
+
+  await writeFile(file, 'line one\r\nline two\r\n', 'utf8');
+  const crlfHash = await hashTemplateTree(dir);
+
+  assert.equal(crlfHash, lfHash);
+});
+
 test('shell filter excludes legacy-overlay basename', () => {
   const root = path.join(os.tmpdir(), 'shell-src');
   assert.equal(
@@ -168,6 +182,7 @@ test('shell filter excludes legacy-overlay basename', () => {
   );
   assert.equal(shouldCopyShell(path.join(root, 'src', 'main.ts'), root), true);
   assert.equal(includeInTreeHash('.g2rain-template-meta.json'), false);
+  assert.equal(includeInTreeHash('lua/keys/iam-key-id.txt'), false);
 });
 
 test('snapshot markdown mentions legacy overlay rule', () => {

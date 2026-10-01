@@ -44,7 +44,7 @@
 
 1. 递归文件，POSIX 相对路径字典序。
 2. 排除 meta、snapshot.md、`.git`、`node_modules`、`dist`。
-3. 对每个文件写入：路径 + NUL + 内容 + NUL。
+3. 对每个文件写入：路径 + NUL + 内容 + NUL；有效 UTF-8 文本先将 `CRLF` 规范化为 `LF`，二进制文件保持原始字节。
 4. 遇 symlink 失败。
 5. 与 sync 使用同一 [`scripts/lib/template-sync-filter.mjs`](../scripts/lib/template-sync-filter.mjs) 过滤规则重建比对。
 
@@ -82,9 +82,11 @@ Shell sync 缺少 `legacy-overlay/` 时失败；`template-shell/` 不得含 lega
 npm run verify:template-snapshots
 ```
 
-CI（`GITHUB_ACTIONS` 或 `G2RAIN_VERIFY_REQUIRE_REBUILD=1`）还必须能按 meta 的 tag/commit **从已经停在该 SHA 的干净 checkout** 重建并 diff。verify **不会**对源仓执行 `git checkout`；HEAD 不一致时失败或跳过重建。
+`verify:template-snapshots` 默认只验证随 CLI 发布的快照：元数据、内容 Hash、默认 Shell 无 legacy，以及 legacy overlay 的必需文件。它不拉取模板仓，也不会因为历史提交被清理而失败。
 
-通用 CLI 回归由 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) 在每个 PR 上跑 `npm test` 与 `npm pack --dry-run`；跨仓重建留给 `verify-template-snapshots.yml`。
+需要在本地排障时重建比对，可显式传入已经停在 `sourceCommit` 的源码目录，并设置 `G2RAIN_VERIFY_REQUIRE_REBUILD=1`。同步工作流在按输入 Tag checkout 后执行同步；同步脚本在当次 checkout 中解析并记录对应 commit，因此该流程是跨仓内容的校验边界。
+
+通用 CLI 回归由 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) 在每个 PR 上跑 `npm test` 与 `npm pack --dry-run`；[`verify-template-snapshots.yml`](../.github/workflows/verify-template-snapshots.yml) 为模板目录变更增加独立的包内快照校验。
 
 ## 发布顺序
 

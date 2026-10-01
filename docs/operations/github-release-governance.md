@@ -50,13 +50,13 @@ CLI sync resolves `refs/tags/<ref>` only; a branch with the same name is rejecte
 | Workflow | Role |
 | --- | --- |
 | `ci.yml` | Every PR / push to `main`/`develop`: `npm ci`, `npm test`, `npm pack --dry-run`, local snapshot meta/hash (no cross-repo rebuild). **Required** branch-protection check. |
-| `verify-template-snapshots.yml` | Path-filtered + push: full snapshot rebuild from template tags (needs template checkout / optional `TEMPLATE_SYNC_TOKEN`). |
+| `verify-template-snapshots.yml` | Path-filtered + push: 校验包内模板快照的元数据、内容 Hash 与协议边界；不拉取外部模板仓。 |
 | `sync-templates.yml` | Manual: sync approved template tags into PR. |
-| `publish-npm.yml` | Tag `v*`: full verify + publish. Bootstrap uses Environment `NPM_PUBLISH_TOKEN`; target is OIDC Trusted Publishing. |
+| `publish-npm.yml` | Tag `v*`: 校验待发布包内快照、测试、打包与 smoke 后发布。Bootstrap uses Environment `NPM_PUBLISH_TOKEN`; target is OIDC Trusted Publishing. |
 
 - Third-party Actions are pinned to commit SHAs.
 - `publish-npm.yml` default `contents: read`; `contents: write` is only on the post-publish Release job.
-- Snapshot verify never `git checkout`s a developer working tree; CI checks out sources into `.sources/*`.
+- 模板源码仅在 `sync-templates.yml` 按操作者输入的受保护 Tag checkout；日常校验与发布不依赖历史源码提交仍可被远端访问。
 
 ## CODEOWNERS teams
 
