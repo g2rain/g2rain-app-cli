@@ -159,7 +159,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: chore/sync-templates
           delete-branch: false
-          title: chore(templates): sync managed template snapshots
+          title: "chore(templates): sync managed template snapshots"
           body: |
             ## Summary
             - App template input: `${{ inputs.app_template_ref || '(unchanged)' }}`
@@ -173,7 +173,7 @@ jobs:
             - Tarball smoke test: passed
 
             Do not edit snapshot directories by hand.
-          commit-message: chore(templates): sync managed template snapshots
+          commit-message: "chore(templates): sync managed template snapshots"
           add-paths: |
             template
             template-shell
