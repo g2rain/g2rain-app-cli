@@ -14,7 +14,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: sync-templates
@@ -123,28 +122,80 @@ jobs:
           echo "app_meta=$APP_META" >> "$GITHUB_OUTPUT"
           echo "shell_meta=$SHELL_META" >> "$GITHUB_OUTPUT"
 
-      - name: Create or update PR
-        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: chore/sync-templates
-          delete-branch: false
-          title: "chore(templates): sync managed template snapshots"
-          body: |
-            ## Summary
-            - App template input: `${{ inputs.app_template_ref || '(unchanged)' }}`
-            - Shell template input: `${{ inputs.shell_template_ref || '(unchanged)' }}`
-            - App snapshot: `${{ steps.appkit.outputs.app_meta }}`
-            - Shell snapshot: `${{ steps.appkit.outputs.shell_meta }}`
-            - Legacy overlay: present
-            - App `@g2rain/http`: `${{ steps.appkit.outputs.app_http }}`
-            - Shell `@g2rain/http`: `${{ steps.appkit.outputs.shell_http }}`
-            - CLI test: passed
-            - Tarball smoke test: passed
+      - name: Commit and push sync branch
+        id: push
+        env:
+          APP_REF: ${{ inputs.app_template_ref }}
+          SHELL_REF: ${{ inputs.shell_template_ref }}
+          APP_META: ${{ steps.appkit.outputs.app_meta }}
+          SHELL_META: ${{ steps.appkit.outputs.shell_meta }}
+          APP_HTTP: ${{ steps.appkit.outputs.app_http }}
+          SHELL_HTTP: ${{ steps.appkit.outputs.shell_http }}
+        run: |
+          set -euo pipefail
+          BRANCH=chore/sync-templates
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-            Do not edit snapshot directories by hand.
-          commit-message: "chore(templates): sync managed template snapshots"
-          add-paths: |
-            template
-            template-shell
-            template-shell-legacy
+          git add template template-shell template-shell-legacy
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Sync templates"
+              echo
+              echo "No snapshot changes to commit. Branch \`$BRANCH\` was not updated."
+              echo
+              echo "- App template input: \`${APP_REF:-'(unchanged)'}\`"
+              echo "- Shell template input: \`${SHELL_REF:-'(unchanged)'}\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          git commit -m "chore(templates): sync managed template snapshots"
+          git push --force origin "HEAD:refs/heads/${BRANCH}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Sync templates"
+            echo
+            echo "Pushed branch \`$BRANCH\`. Open and merge the PR manually (Actions cannot create PRs in this org)."
+            echo
+            echo "### Summary"
+            echo
+            echo "- App template input: \`${APP_REF:-'(unchanged)'}\`"
+            echo "- Shell template input: \`${SHELL_REF:-'(unchanged)'}\`"
+            echo "- App snapshot: \`$APP_META\`"
+            echo "- Shell snapshot: \`$SHELL_META\`"
+            echo "- Legacy overlay: present"
+            echo "- App \`@g2rain/http\`: \`$APP_HTTP\`"
+            echo "- Shell \`@g2rain/http\`: \`$SHELL_HTTP\`"
+            echo "- CLI test: passed"
+            echo "- Tarball smoke test: passed"
+            echo
+            echo "Do not edit snapshot directories by hand."
+            echo
+            echo "### Create PR"
+            echo
+            echo '```bash'
+            echo "gh pr create --repo ${GITHUB_REPOSITORY} --base ${GITHUB_REF_NAME} --head ${BRANCH} \\"
+            echo "  --title 'chore(templates): sync managed template snapshots' \\"
+            echo "  --body \"\$(cat <<'EOF'"
+            echo "## Summary"
+            echo "- App template input: ${APP_REF:-'(unchanged)'}"
+            echo "- Shell template input: ${SHELL_REF:-'(unchanged)'}"
+            echo "- App snapshot: ${APP_META}"
+            echo "- Shell snapshot: ${SHELL_META}"
+            echo "- Legacy overlay: present"
+            echo "- App \`@g2rain/http\`: ${APP_HTTP}"
+            echo "- Shell \`@g2rain/http\`: ${SHELL_HTTP}"
+            echo "- CLI test: passed"
+            echo "- Tarball smoke test: passed"
+            echo
+            echo "Do not edit snapshot directories by hand."
+            echo "EOF"
+            echo ")\""
+            echo '```'
+            echo
+            echo "If an open PR already uses \`$BRANCH\`, refresh it and merge that PR instead of opening a second one."
+          } >> "$GITHUB_STEP_SUMMARY"

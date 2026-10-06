@@ -1,51 +1,68 @@
 # 使用手册
 
-- 日期：2026-09-27
-- 命令：`create-g2rain-app`、`g2rain-app`（两者相同）
+- 日期：2026-10-01
+- npm 包：`create-g2rain-app`（当前正式发布：`1.0.0`）
+- 命令：`g2rain-app`、`create-g2rain-app`（两个 bin 等价，指向同一入口）
 - 项目族：
   - `frontend-app`：包内 `template/`（源仓 `g2rain-app-template`）
   - `frontend-shell`：包内 `template-shell/`（源仓 `g2rain-shell-template`）
 - 未指定 family 时默认生成 `frontend-app`，并打印明确提示
 
-`create-g2rain-app` 还没有 Registry 版本，下面的安装是当前本地用法。发到 Registry 之后的安装命令待补充。
-
 Node.js 需要 `>=22`。
 
-## 1. 装上命令
+包名是 `create-g2rain-app`；`g2rain-app` 是安装后的可执行命令，不是独立的 npm 包名。未安装时直接输入 `g2rain-app` 不会生效。
 
-在 `g2rain-app-cli` 目录：
+## 1. 安装命令（推荐）
+
+本机日常优先全局安装固定版本，装一次后可在任意目录使用：
 
 ```bash
-npm ci
-npm run build
-npm link
+npm install -g create-g2rain-app@1.0.0
+g2rain-app --version
+# 期望: 1.0.0
 ```
 
-之后在任意目录可以使用 `create-g2rain-app` 和 `g2rain-app`。
+之后创建项目：
 
-已有业务 App 不需要全局 link，把 CLI 装成开发依赖即可：
+```bash
+g2rain-app app g2rain-member-app --context-path member
+g2rain-app shell g2rain-admin-shell --context-path admin --port 3000
+```
+
+`create-g2rain-app` 与 `g2rain-app` 等价，可任选其一。升级时显式重装目标版本，例如 `npm install -g create-g2rain-app@x.y.z`；不要依赖本机“碰巧的 latest”。
+
+### 备选：不装全局
+
+```bash
+# CI / 一次性冒烟：按包名 + 固定版本
+npx create-g2rain-app@1.0.0 app g2rain-member-app --context-path member
+
+# 需要显式跑 g2rain-app 这个 bin 时：
+npx --package=create-g2rain-app@1.0.0 g2rain-app app g2rain-member-app --context-path member
+```
+
+### 已有业务 App 内的 generate / build-config
+
+把 CLI 装成项目 `devDependency`（正式项目用 registry 版本，不要长期依赖 `file:`），再在 App 根目录调用：
 
 ```json
 {
   "devDependencies": {
-    "create-g2rain-app": "file:../g2rain-app-cli"
+    "create-g2rain-app": "1.0.0"
   }
 }
 ```
 
-然后在该 App 根目录用 `npx g2rain-app`。
-
-模板快照维护（正式路径：GitHub Actions `sync-templates`）：
-
-```powershell
-$env:G2RAIN_ALLOW_LOCAL_SYNC = '1'
-$env:G2RAIN_APP_TEMPLATE_REF = 'vX.Y.Z'
-$env:G2RAIN_SHELL_TEMPLATE_REF = 'vA.B.C'
-npm run sync:templates
-npm run verify:template-snapshots
+```bash
+npx g2rain-app generate --tables=member
+npx g2rain-app build-config
 ```
 
-创建时不要再手动克隆模板仓；本地调试可用 `G2RAIN_TEMPLATE_PATH` / `G2RAIN_SHELL_TEMPLATE_PATH`。详见 [template-snapshots.md](../template-snapshots.md)。
+这样不受本机全局 CLI 版本漂移影响。若模板生成物仍含 `"create-g2rain-app": "file:../g2rain-app-cli"`，正式项目应改为上述 registry 版本后再 `npm install`。
+
+### CLI 仓本地开发
+
+仅开发本仓库时使用 `npm link` 或直接跑 `node dist/index.js`，见 [本地开发](local-development.md)。模板快照维护（正式路径：GitHub Actions `sync-templates`）；本地排障见 [template-snapshots.md](../template-snapshots.md)。
 
 ## 2. 创建项目
 
@@ -54,7 +71,7 @@ npm run verify:template-snapshots
 ### 2.1 业务子应用（frontend-app）
 
 ```bash
-create-g2rain-app app g2rain-order-app --context-path order
+g2rain-app app g2rain-order-app --context-path order
 ```
 
 兼容旧写法（默认 frontend-app，会提示）：
@@ -68,11 +85,11 @@ create-g2rain-app --family frontend-app --name g2rain-order-app --context-path o
 ### 2.2 Main Shell（frontend-shell）
 
 ```bash
-create-g2rain-app shell g2rain-admin-shell --context-path admin --port 3000
+g2rain-app shell g2rain-admin-shell --context-path admin --port 3000
 create-g2rain-app --family frontend-shell --name g2rain-admin-shell --context-path admin --port 3000
 ```
 
-Shell 默认 Context Path 为 `admin`，端口 `3000`。生成后直接执行 `npm install`；AppKit 依赖使用模板声明的已发布 `@g2rain/*` 版本。
+Shell 默认 Context Path 为 `admin`，端口 `3000`。生成后执行 `npm install`；AppKit 依赖使用模板声明的已发布 `@g2rain/*` 版本。
 
 不带参数时会提问。项目名默认 `g2rain-new-app`。Context Path 不要带前导斜杠；省略时由项目名去掉 `g2rain-` 前缀和 `-app` 后缀得到，例如 `g2rain-order-app` 得到 `order`。
 
@@ -85,7 +102,7 @@ npm install
 
 模板不复制 lockfile，第一次不要用 `npm ci`。
 
-当前模板依赖仍指向 `file:../g2rain-appkit/`，并且包含已经不存在的 `@g2rain/runtime`。安装前改成业务 App 自己的 `@g2rain/theme`、`@g2rain/ui`、`@g2rain/http`、`@g2rain/platform` 制品，再执行 `npm install`。制品安装见 [业务 App 接入](https://github.com/g2rain/g2rain-appkit/blob/main/docs/integration/app.md)。
+本地调试可用 `G2RAIN_TEMPLATE_PATH` / `G2RAIN_SHELL_TEMPLATE_PATH` 覆盖包内快照；创建时不要手动克隆模板仓。
 
 ## 3. 生成页面
 

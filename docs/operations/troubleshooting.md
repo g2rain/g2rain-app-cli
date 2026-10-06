@@ -2,9 +2,11 @@
 
 ## 命令不存在
 
-- npx：确认包名是 `create-g2rain-app`。
-- 全局/本地安装：确认 `npm bin`、PATH 和 package bin 链接。
-- 仓库开发：先执行 `npm run build`，或直接 `node dist/index.js`。
+- 推荐先全局安装：`npm install -g create-g2rain-app@1.0.0`，再执行 `g2rain-app --version`。
+- 包名是 `create-g2rain-app`；`g2rain-app` 是 bin，不是独立 npm 包。裸跑 `npx g2rain-app` 通常会失败。
+- 不装全局时用：`npx create-g2rain-app@1.0.0 ...`，或 `npx --package=create-g2rain-app@1.0.0 g2rain-app ...`。
+- 已安装仍找不到：检查 `npm bin -g`、PATH，以及是否装到了另一个 Node 前缀。
+- 仅开发本仓库：先 `npm run build`，或直接 `node dist/index.js`（不要把 `npm link` 当作普通用户安装方式）。
 
 ## 找不到模板
 

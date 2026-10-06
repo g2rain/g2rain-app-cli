@@ -2,6 +2,8 @@
 
 本仓库是 g2rain 前端工程创建工具，不是浏览器运行时 App。它生成的项目来自 `g2rain-app-template`，并应采用中央 `frontend-app` Profile。
 
+面向业务开发者的安装方式：全局安装已发布 npm 包后使用 `g2rain-app`（见 [使用手册](development/usage.md)）。`npm link` / 本地 `dist` 仅用于本仓开发。
+
 ## 架构
 
 - [架构概览](architecture/overview.md)

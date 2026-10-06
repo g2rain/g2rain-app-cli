@@ -1,6 +1,6 @@
 {
   "name": "create-g2rain-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI to scaffold G2rain frontend-app sub-apps and frontend-shell Main Shells, plus generate / build-config tooling.",
   "license": "Apache-2.0",
   "repository": {

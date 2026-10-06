@@ -36,43 +36,54 @@ CLI 不自动安装依赖、不初始化 Git、不注册平台资源。不得用
 
 ## 安装与运行
 
+npm 包名是 `create-g2rain-app`；安装后提供两个等价命令：`g2rain-app` 与 `create-g2rain-app`。
+
+### 推荐：本机全局安装（装一次，长期使用）
+
+```bash
+npm install -g create-g2rain-app@1.0.0
+g2rain-app --version
+```
+
 创建业务子应用：
 
 ```bash
-create-g2rain-app app my-member-app --context-path member
+g2rain-app app g2rain-member-app --context-path member
 ```
 
 创建 Main Shell：
 
 ```bash
-create-g2rain-app shell my-admin-shell --context-path admin --port 3000
+g2rain-app shell g2rain-admin-shell --context-path admin --port 3000
 ```
 
 创建带存量双协议兼容的 Main Shell（迁移期）：
 
 ```bash
-create-g2rain-app shell my-admin-shell --context-path admin --port 3000 --with-legacy
+g2rain-app shell g2rain-admin-shell --context-path admin --port 3000 --with-legacy
 ```
 
 兼容旧写法（默认 frontend-app）：
 
 ```bash
-create-g2rain-app my-member-app --context-path member
+g2rain-app g2rain-member-app --context-path member
 ```
 
-本地开发覆盖模板源仓：
+升级时显式重装目标版本：`npm install -g create-g2rain-app@x.y.z`。完整说明见[使用手册](docs/development/usage.md)。
 
-```powershell
-$env:G2RAIN_TEMPLATE_PATH = 'D:\github\g2rain-app-template'
-$env:G2RAIN_SHELL_TEMPLATE_PATH = 'D:\github\g2rain-shell-template'
+### 备选：不装全局（CI / 一次性）
+
+```bash
+npx create-g2rain-app@1.0.0 app g2rain-member-app --context-path member
+npx --package=create-g2rain-app@1.0.0 g2rain-app shell g2rain-admin-shell --context-path admin
 ```
 
-生成位置是“当前工作目录下的项目名目录”，所以应先 `cd` 到明确的父目录。
+生成位置是“当前工作目录下的项目名目录”，所以应先 `cd` 到明确的父目录。本地调试才用 `G2RAIN_TEMPLATE_PATH` / `G2RAIN_SHELL_TEMPLATE_PATH` 覆盖包内快照（见[本地开发](docs/development/local-development.md)）。
 
 ## 交互式示例
 
 ```text
-> npx create-g2rain-app
+> g2rain-app
 ? Project name › g2rain-new-app
 ? Context path (URL prefix, without leading slash) › new
 ➜ Using template: .../create-g2rain-app/template
@@ -85,22 +96,25 @@ Context Path 默认由项目名移除 `g2rain-` 前缀和 `-app` 后缀得到。
 ## 非交互示例
 
 ```bash
-npx create-g2rain-app g2rain-member-app --context-path member
-npx create-g2rain-app g2rain-member-app --context_path member
-npx create-g2rain-app g2rain-member-app member
+g2rain-app app g2rain-member-app --context-path member
+g2rain-app g2rain-member-app --context-path member
+g2rain-app g2rain-member-app --context_path member
+g2rain-app g2rain-member-app member
 ```
 
 当前未知选项会报错退出；项目名和 Context Path 的字符校验仍较弱。详见[架构偏差](docs/architecture/deviations.md)与[命令接口](docs/development/command-interface.md)。
 
 ### 在已有 App 中使用生成工具
 
+把 `create-g2rain-app` 装成项目 `devDependency`（正式项目用 npm 版本，例如 `1.0.0`，不要长期依赖 `file:`）：
+
 ```bash
-# App 根目录；需安装 create-g2rain-app 为 devDependency
+# App 根目录
 npm run build:generate -- --tables=member
 npm run build:config
 # 或直接：
-g2rain-app generate --tables=member,member_identity
-g2rain-app build-config
+npx g2rain-app generate --tables=member,member_identity
+npx g2rain-app build-config
 ```
 
 ## 生成流程
@@ -165,11 +179,12 @@ npm run sync:templates
 npm run verify:template-snapshots
 ```
 
-本地验证编译产物：
+本地验证编译产物（仅 CLI 仓开发；普通用户请用上文全局安装）：
 
 ```bash
-npm link
-g2rain-app test-app --context-path test
+npm run build
+node dist/index.js app test-app --context-path test
+# 或临时：npm link 后再执行 g2rain-app ...
 ```
 
 `npm run dev` 会直接执行生成流程并在当前工作目录创建项目；不要在含同名重要目录的位置随意运行。推荐使用临时目录验证。

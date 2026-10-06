@@ -5,8 +5,9 @@
 ## 项目定位
 
 - 类型：Node.js 前端脚手架 + 开发期生成 CLI
-- npm 包：`create-g2rain-app`（当前 1.0.0）
+- npm 包：`create-g2rain-app`（当前已发布 `1.0.0`；本地维护版本以 `package.json` 为准）
 - bin：`create-g2rain-app`、`g2rain-app`
+- 面向用户推荐：`npm install -g create-g2rain-app@1.0.0` 后使用 `g2rain-app`（详见 `docs/development/usage.md`）
 - 子命令：`app` / `shell` / `create`（默认）、`generate`、`build-config`
 - 项目族：
   - `frontend-app`：包内 `template/`（正式：GitHub Actions sync-templates ← `g2rain-app-template` tag）
@@ -39,7 +40,7 @@ CLI 自身不是浏览器 App；生成结果须分别符合对应 Profile，且�
 - 不覆盖已存在目标目录，不在失败后把半成品误报为成功。
 - 项目名、Context Path、模板路径和参数必须显式校验，不能允许目录逃逸或 shell 注入。
 - 外部命令使用参数数组的进程 API，不拼接可执行 shell 字符串。
-- 正式发布使用包内模板快照；更新模板通过 sync-templates workflow 开 PR，禁止手改 `template*`。
+- 正式发布使用包内模板快照；更新模板通过 sync-templates workflow 推 `chore/sync-templates` 后人工开 PR 合并，禁止手改 `template*`。
 - 本地 `npm run sync:*` 仅排障：需要 `G2RAIN_ALLOW_LOCAL_SYNC=1` 与 `G2RAIN_*_TEMPLATE_REF`。
 - App 可用 `G2RAIN_TEMPLATE_PATH`、Shell 可用 `G2RAIN_SHELL_TEMPLATE_PATH` 覆盖，不得默默跟随 GitHub 默认分支。
 - 新增项目族时只注册 family definition（参数、模板、identity、verify、help），避免巨型 if/else。

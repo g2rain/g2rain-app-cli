@@ -4,7 +4,7 @@ family: frontend-tooling-cli
 role: 创建 frontend-app 业务子应用与 frontend-shell Main Shell 工程
 package:
   name: create-g2rain-app
-  version: 1.0.0
+  version: 1.0.1
   private: false
   license: Apache-2.0
   files:
@@ -129,10 +129,12 @@ commands:
   install: npm ci
   build: npm run build
   dev: npm run dev
-  interactive: npx create-g2rain-app
-  nonInteractive: npx create-g2rain-app <project-name> --context-path <context-path>
+  installCli: npm install -g create-g2rain-app@1.0.0
+  interactive: g2rain-app
+  nonInteractive: g2rain-app app <project-name> --context-path <context-path>
   generate: g2rain-app generate --tables=<tables>
   buildConfig: g2rain-app build-config
+  ciSmoke: npx create-g2rain-app@1.0.0 app <project-name> --context-path <context-path>
   syncTemplates: npm run sync:templates
   verifyTemplateSnapshots: npm run verify:template-snapshots
   packageDryRun: npm pack --dry-run

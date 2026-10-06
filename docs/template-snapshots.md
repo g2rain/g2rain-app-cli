@@ -50,7 +50,7 @@
 
 ## 同步
 
-正式同步由 GitHub Actions `sync-templates` 创建 PR，**不**直推默认分支、不发 npm。
+正式同步由 GitHub Actions `sync-templates`：校验通过后强制推送到分支 `chore/sync-templates`，**不**直推默认分支、不发 npm、不自动开 PR。操作者根据 Job Summary 中的 `gh pr create` 命令人工创建 PR 并合并。复用同名分支时若已有未合并 PR，应刷新该 PR 审查合并，避免并行开第二份。
 
 本地排障同步：
 
@@ -93,7 +93,7 @@ npm run verify:template-snapshots
 1. 发布确定版本的 Appkit（如需要）
 2. App / Shell 模板打 tag + Release
 3. 手动触发 CLI `sync-templates`（至少一个 tag）
-4. 审查并合并同步 PR
+4. 人工从 `chore/sync-templates` 创建 PR（或刷新已有 PR），审查并合并
 5. 为 CLI 打 `v*` tag → `publish-npm`（OIDC Trusted Publishing + `npm-production` 审批）
 
 详见 [publishing.md](operations/publishing.md)。
