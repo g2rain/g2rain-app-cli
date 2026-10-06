@@ -9,7 +9,7 @@ create-g2rain-app
 g2rain-app
 ```
 
-两者都指向 `dist/index.js`，行为必须一致。面向用户安装见 [usage.md](usage.md)（推荐 `npm install -g create-g2rain-app@latest` 后使用 `g2rain-app`）。当前 CLI 发布候选版本为 `1.0.1`，以 package.json 与锁文件为准。
+两者都指向 `dist/index.js`，行为必须一致。面向用户安装见 [usage.md](usage.md)（推荐 `npm install -g create-g2rain-app@1.0.0`）。
 
 ## 子命令与项目族
 
@@ -79,14 +79,6 @@ g2rain-app build-config [--cwd .] [--route-map path] [--views path] [--out path]
 ```
 
 当前不生成 `api-endpoints.json`。
-
-## 参数校验
-
-交互与非交互模式使用同一校验，失败退出 1：
-
-- 项目名：`^[a-z0-9][a-z0-9-]*$`（小写字母、数字、连字符）。
-- Context Path：去掉首尾 `/` 后按 `/` 分段，每段 `^[a-z0-9][a-z0-9_-]*$`。
-- `generate` 表名：`^[A-Za-z_][A-Za-z0-9_]*$`；任一表在 SQL 中不存在时，写入任何文件前失败。
 
 ## 退出行为
 
