@@ -9,7 +9,7 @@ create-g2rain-app
 g2rain-app
 ```
 
-两者都指向 `dist/index.js`，行为必须一致。
+两者都指向 `dist/index.js`，行为必须一致。面向用户安装见 [usage.md](usage.md)（推荐 `npm install -g create-g2rain-app@1.0.0`）。
 
 ## 子命令与项目族
 

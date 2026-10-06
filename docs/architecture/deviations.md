@@ -20,7 +20,7 @@ create 默认使用包内 `template/` 快照，不再 Git clone；此前 `execFi
 
 状态：已于 2026-10-01 进一步关闭。
 
-正式 npm 包内嵌 `template/`、`template-shell/`、`template-shell-legacy/` 快照，meta schema v2 记录 `sourceRef`（Git tag）、完整 `sourceCommit` 与 `contentSha256`。正式同步由 GitHub Actions `sync-templates` 创建 PR；本地 sync 需 `G2RAIN_ALLOW_LOCAL_SYNC=1`。详见 [template-snapshots.md](../template-snapshots.md)。
+正式 npm 包内嵌 `template/`、`template-shell/`、`template-shell-legacy/` 快照，meta schema v2 记录 `sourceRef`（Git tag）、完整 `sourceCommit` 与 `contentSha256`。正式同步由 GitHub Actions `sync-templates` 推 `chore/sync-templates`，再由人工开 PR 合并；本地 sync 需 `G2RAIN_ALLOW_LOCAL_SYNC=1`。详见 [template-snapshots.md](../template-snapshots.md)。
 
 ## DEV-005：模板完整性和失败恢复不足
 
@@ -45,3 +45,9 @@ create 默认使用包内 `template/` 快照，不再 Git clone；此前 `execFi
 状态：已于 2026-09-03 修复。
 
 CLI 现在按明确清单将 `package.json`、`README.md`、`AGENTS.md`、`docs/project.yaml`、文档入口、架构概览和决策说明转换为业务 App 身份。生成项目记录真实项目名、推导的 g2rain 仓库地址、CLI 版本、模板仓库、模板 tag/commit（embedded meta 优先；否则 Git commit；再否则 `local`）和 Context Path；集成测试验证模板身份不会继续充当业务项目身份。指向官方模板的来源链接会保留，这是可追溯信息，不是项目身份。
+
+## DEV-009：模板快照仍将 `create-g2rain-app` 钉为 `file:../g2rain-app-cli`
+
+状态：开放（2026-10-01）。
+
+包内 `template/package.json` 与部分模板文档仍按模板仓本地联调约定使用 `file:../g2rain-app-cli`。用已发布 CLI 脚手架出的正式业务 App 应改为 npm 版本（如 `1.0.0`）。根治需在 `g2rain-app-template` 改为 registry 依赖后打 tag，再经 `sync-templates` 刷新快照；勿手改 CLI 仓 `template*`（会破坏 `contentSha256`）。用户侧说明见 [usage.md](../development/usage.md)。

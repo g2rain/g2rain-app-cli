@@ -63,8 +63,8 @@ Shell 同步额外排除源仓 `legacy-overlay/`（写入独立 `template-shell-
 ```text
 中央 Profile / Appkit 规则变化
 → 更新 app-template / shell-template 源仓并打 tag + Release
-→ GitHub Actions sync-templates（输入 tag）创建同步 PR
-→ 审查 meta / hash / tarball 冒烟 → 合并
+→ GitHub Actions sync-templates（输入 tag）推 `chore/sync-templates`
+→ 人工开 PR → 审查 meta / hash / tarball 冒烟 → 合并
 → 为 CLI 打 tag → publish-npm（OIDC）
 ```
 
