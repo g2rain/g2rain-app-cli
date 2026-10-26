@@ -64,7 +64,8 @@ export class PageElementPermission {
    * 根据 pageElementStatus 控制元素的显示和可用性：
    * - VISIBLE: 显示但不可点击（disabled / 置灰）
    * - ENABLED: 显示且可点击
-   * - undefined: 按钮等隐藏；el-switch 仍显示但置灰
+   * - undefined: 隐藏
+   * 状态开关不走本指令：StatusSwitch 通过 permission 属性自行计算 disabled
    */
   static directive = {
     mounted(el: HTMLElement, binding: { value: string }) {
@@ -87,24 +88,6 @@ export class PageElementPermission {
       el.classList.contains('el-button') ||
       el.getAttribute('data-component') === 'el-button' ||
       el.tagName === 'BUTTON';
-
-    /** el-switch：无权限 / VISIBLE 均展示但置灰，仅 ENABLED 可操作 */
-    const isElSwitch = el.classList.contains('el-switch');
-
-    if (isElSwitch) {
-      el.style.display = '';
-      el.style.pointerEvents = '';
-      el.style.opacity = '';
-      el.style.cursor = '';
-      if (status === 'ENABLED') {
-        el.removeAttribute('disabled');
-        el.classList.remove('is-disabled');
-      } else {
-        el.setAttribute('disabled', 'disabled');
-        el.classList.add('is-disabled');
-      }
-      return;
-    }
 
     if (!status) {
       el.style.display = 'none';

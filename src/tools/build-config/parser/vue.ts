@@ -53,6 +53,9 @@ function extractPermissionCodes(content: string): string[] {
       /v-permission\s*=\s*'"([^"\\]*)"'/g,
       /v-permission\s*=\s*"([^"]*)"/g,
       /v-permission\s*=\s*'([^']*)'/g,
+      // 状态开关等组件的 permission 属性：只认静态值，排除 :permission 绑定与 v-permission
+      /(?<![\w:-])permission\s*=\s*"([^"]*)"/g,
+      /(?<![\w:-])permission\s*=\s*'([^']*)'/g,
     ],
     codes,
   );
