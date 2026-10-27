@@ -66,7 +66,12 @@ export const useWorkspaceStore = defineStore('shell-workspace', () => {
     if (!tab.closable) return
 
     if (tab.kind === 'micro-app' && tab.instanceId) {
-      await useRuntimeStore().destroyInstance(tab.instanceId)
+      try {
+        await useRuntimeStore().destroyInstance(tab.instanceId)
+      } catch (error) {
+        // 销毁失败也要移除 Tab
+        console.error('[WorkspaceStore] destroyInstance failed on closeTab', { tabId, error })
+      }
     }
 
     const wasActive = activeTabId.value === tabId

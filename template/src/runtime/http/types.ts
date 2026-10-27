@@ -64,6 +64,12 @@ export interface HttpClient<Direct extends boolean = false> {
     params?: object,
     config?: AxiosRequestConfig,
   ): Promise<HttpResponse<T, Direct>>;
+  sse<T = unknown, Body = unknown>(
+    url: string,
+    data: Body | undefined,
+    onEvent: (event: T) => void,
+    config?: AxiosRequestConfig<Body>,
+  ): Promise<void>;
 }
 
 export interface HttpClientInstance<Direct extends boolean = false> {

@@ -32,6 +32,12 @@ Shell 同步额外排除源仓 `legacy-overlay/`（写入独立 `template-shell-
 
 不复制 lockfile 意味着生成项目首次运行 `npm install` 并重新解析依赖版本。
 
+快照内的 `_gitignore` / `_npmrc` 在复制时还原为 `.gitignore` / `.npmrc`（npm 包会丢弃原名，见 [template-snapshots.md](../template-snapshots.md#dotfile-存储名)）。
+
+## 依赖改写
+
+frontend-app 模板的 devDependency `create-g2rain-app`（模板仓联调用 `file:../g2rain-app-cli`）在生成时改写为 `^<当前 CLI 版本>`。
+
 ## 占位符
 
 - `{{PROJECT_NAME}}`：npm package name、应用编码和镜像/文档示例等模板位置。

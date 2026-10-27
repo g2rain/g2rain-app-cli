@@ -27,7 +27,6 @@ export interface SessionOrganSummary {
 export const useSessionStore = defineStore('shell-session', () => {
   const user = ref<SessionUserSummary | null>(null)
   const organ = ref<SessionOrganSummary | null>(null)
-  const availableOrgans = ref<SessionOrganSummary[]>([])
 
   const isLoggedIn = computed(() => user.value !== null)
   const hasOrgan = computed(() => organ.value !== null)
@@ -40,22 +39,9 @@ export const useSessionStore = defineStore('shell-session', () => {
     organ.value = next
   }
 
-  function setAvailableOrgans(next: readonly SessionOrganSummary[]): void {
-    availableOrgans.value = [...next]
-  }
-
-  function switchOrgan(organCode: string): void {
-    const matched = availableOrgans.value.find((item) => item.organCode === organCode)
-    if (!matched) {
-      throw new Error(`Unknown organCode "${organCode}"`)
-    }
-    organ.value = matched
-  }
-
   function clearSession(): void {
     user.value = null
     organ.value = null
-    availableOrgans.value = []
     clearAuthorityUserCache()
   }
 
@@ -85,14 +71,12 @@ export const useSessionStore = defineStore('shell-session', () => {
           admin: authority.organ.admin,
         }
         setOrgan(summary)
-        setAvailableOrgans([summary])
       } else if (authority.organId != null) {
         const summary: SessionOrganSummary = {
           name: `机构 ${authority.organId}`,
           organCode: String(authority.organId),
         }
         setOrgan(summary)
-        setAvailableOrgans([summary])
       }
     } catch (error) {
       console.warn('[session] failed to load authority user:', error)
@@ -103,13 +87,10 @@ export const useSessionStore = defineStore('shell-session', () => {
   return {
     user,
     organ,
-    availableOrgans,
     isLoggedIn,
     hasOrgan,
     setUser,
     setOrgan,
-    setAvailableOrgans,
-    switchOrgan,
     clearSession,
     bootstrapSession,
   }

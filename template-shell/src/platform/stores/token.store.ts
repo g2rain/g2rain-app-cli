@@ -19,6 +19,10 @@ export interface AccessTokenClaims {
   refreshExpireAt: number
   adminCompany: boolean
   organId?: number
+  /** 当前身份对应的用户标识；切换身份时用于标记当前项 */
+  userId?: string
+  /** USER / PASSPORT / MEMBER / ANONYMOUS */
+  sessionType?: string
 }
 
 export type TokenSessionStatus = 'NORMAL' | 'SSO' | 'LOGOUT'
@@ -162,6 +166,8 @@ export const useAccessTokenStore = defineStore('shell-access-token', () => {
       adminCompany: payload.adminCompany === true,
       organId:
         parsedOrganId != null && !Number.isNaN(parsedOrganId) ? parsedOrganId : undefined,
+      userId: payload.userId != null && payload.userId !== '' ? String(payload.userId) : undefined,
+      sessionType: (payload.sessionType as string) || undefined,
     }
     logged.value = true
     status.value = 'NORMAL'

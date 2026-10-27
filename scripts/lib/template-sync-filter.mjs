@@ -1,3 +1,4 @@
+import fsp from 'node:fs/promises';
 import path from 'node:path';
 
 const COMMON_BLOCKED_BASENAMES = new Set([
@@ -40,6 +41,51 @@ export const TREE_HASH_EXCLUDED_BASENAMES = new Set([
   'node_modules',
   'dist',
 ]);
+
+/**
+ * npm pack 总会丢弃 .gitignore / .npmrc，快照内改存为下列名称；
+ * 脚手架复制时还原（src/scaffold/copy.ts 的 DOTFILES 须保持一致）。
+ */
+export const DOTFILES = new Map([
+  ['.gitignore', '_gitignore'],
+  ['.npmrc', '_npmrc'],
+]);
+
+const RESTORED_DOTFILES = new Map([...DOTFILES].map(([name, stored]) => [stored, name]));
+
+/**
+ * 快照内 POSIX 相对路径 → 源仓（逻辑）路径；树哈希按逻辑路径计算，与源仓一致。
+ * @param {string} posixRelative
+ */
+export function toSourcePath(posixRelative) {
+  const parts = posixRelative.split('/');
+  const name = RESTORED_DOTFILES.get(parts.at(-1));
+  if (name) parts[parts.length - 1] = name;
+  return parts.join('/');
+}
+
+/**
+ * 同步后把快照目录中的 .gitignore / .npmrc 改名为 _gitignore / _npmrc。
+ * 源仓若已有同名 _gitignore / _npmrc 则失败，避免还原时互相覆盖。
+ * @param {string} root
+ */
+export async function storeDotfiles(root) {
+  const entries = await fsp.readdir(root, { withFileTypes: true });
+  for (const entry of entries) {
+    const abs = path.join(root, entry.name);
+    if (entry.isDirectory()) {
+      await storeDotfiles(abs);
+      continue;
+    }
+    if (RESTORED_DOTFILES.has(entry.name)) {
+      throw new Error(`Reserved snapshot file name in template source: ${abs}`);
+    }
+  }
+  for (const entry of entries) {
+    const stored = entry.isFile() ? DOTFILES.get(entry.name) : undefined;
+    if (stored) await fsp.rename(path.join(root, entry.name), path.join(root, stored));
+  }
+}
 
 function isLocalEnvFile(basename) {
   return basename === '.env.local' || /^\.env\..+\.local$/.test(basename);

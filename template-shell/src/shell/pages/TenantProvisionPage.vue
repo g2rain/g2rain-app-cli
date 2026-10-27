@@ -206,12 +206,15 @@ const submitJoin = async () => {
     const user = await TenantProvisionApi.joinOrgan({
       inviteCode: joinForm.inviteCode.trim(),
     });
-    await sso.switchToken(user.id);
+    try {
+      await sso.switchToken(user.id);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '加入机构失败';
+      ElMessage.error(msg);
+      return;
+    }
     ElMessage.success('加入机构成功');
     setTimeout(() => window.location.reload(), 300);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : '加入机构失败';
-    ElMessage.error(msg);
   } finally {
     joinSubmitting.value = false;
   }
@@ -231,16 +234,17 @@ const submitEdit = async () => {
     mobile: editForm.mobile,
   };
 
+  const user = await TenantProvisionApi.provisionAccount(payload);
+  // 开通成功后切换/刷新 token，并重置菜单
   try {
-    const user = await TenantProvisionApi.provisionAccount(payload);
-      // 开通成功后切换/刷新 token，并重置菜单
     await sso.switchToken(user.id);
-    ElMessage.success('开通成功');
-    setTimeout(() => window.location.reload(), 300);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : '开通失败';
     ElMessage.error(msg);
+    return;
   }
+  ElMessage.success('开通成功');
+  setTimeout(() => window.location.reload(), 300);
 };
 
   // 挂载回调

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { MainPublicProps } from '@g2rain/platform/main'
 import { getMainPlatform } from '../main-platform'
+import { useLocaleStore } from './locale.store'
 import { createInstanceQueue } from '../apps/instance-queue'
 import { createQiankunAdapter, ensureQiankunStarted } from '../apps/qiankun-adapter'
 import {
@@ -88,6 +89,7 @@ export const useRuntimeStore = defineStore('shell-runtime', () => {
   /**
    * Close / destroy order (required):
    * qiankun unmount → delete handle → platform.releaseInstance → delete RuntimeInstance
+   * unmount 失败仍释放实例并删除记录，错误继续抛给调用方。
    */
   async function destroyInstance(instanceId: string): Promise<void> {
     await queue.enqueue(instanceId, async () => {
@@ -95,10 +97,13 @@ export const useRuntimeStore = defineStore('shell-runtime', () => {
       clearPendingAuthForInstance(instanceId)
       const instance = instances.value.get(instanceId)
       const adapter = resolveAdapter(instance?.applicationCode ?? '')
-      await adapter.unmount(instanceId)
-      getMainPlatform().releaseInstance(instanceId)
-      instances.value.delete(instanceId)
-      queue.clear(instanceId)
+      try {
+        await adapter.unmount(instanceId)
+      } finally {
+        getMainPlatform().releaseInstance(instanceId)
+        instances.value.delete(instanceId)
+        queue.clear(instanceId)
+      }
     })
   }
 
@@ -160,6 +165,7 @@ export const useRuntimeStore = defineStore('shell-runtime', () => {
     await queue.enqueue(input.instanceId, async () => {
       const main = getMainPlatform()
       const entryOrigin = resolveEntryOrigin(definition.entry)
+      const { locale } = useLocaleStore()
       const props = main.buildPublicProps(
         {
           applicationCode: input.applicationCode,
@@ -168,6 +174,7 @@ export const useRuntimeStore = defineStore('shell-runtime', () => {
           mode: 'integrated',
           contextPath: definition.contextPath,
           ...(input.initialRoute ? { initialRoute: input.initialRoute } : {}),
+          ...(locale ? { locale } : {}),
         },
         {
           activeRule: definition.activeRule,
@@ -223,11 +230,16 @@ export const useRuntimeStore = defineStore('shell-runtime', () => {
     })
   }
 
+  /** 逐个销毁；单个失败只记日志，不阻断退出登录。 */
   async function releaseAllOnLogout(): Promise<void> {
     closeAuthBridge()
     const ids = [...instances.value.keys()]
     for (const instanceId of ids) {
-      await destroyInstance(instanceId)
+      try {
+        await destroyInstance(instanceId)
+      } catch (error) {
+        console.error('[RuntimeStore] destroyInstance failed on logout', { instanceId, error })
+      }
     }
   }
 

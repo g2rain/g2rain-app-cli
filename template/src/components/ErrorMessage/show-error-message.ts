@@ -5,7 +5,7 @@ export interface ErrorMessageOptions {
   duration?: number;
 }
 
-export type ErrorMessagePayload = string | Error | { message?: string; errorCode?: string; code?: string };
+export type ErrorMessagePayload = string | Error | { message?: string; errorCode?: string };
 
 /**
  * 统一的错误消息展示封装（Element Plus ElMessage）
@@ -20,8 +20,6 @@ export function showErrorMessage(error: ErrorMessagePayload, options: ErrorMessa
     message = error.message || message;
     if ('errorCode' in error && typeof error.errorCode === 'string' && error.errorCode !== '') {
       errorCode = error.errorCode;
-    } else if ('code' in error && typeof error.code === 'string' && error.code !== '') {
-      errorCode = error.code;
     }
   }
 

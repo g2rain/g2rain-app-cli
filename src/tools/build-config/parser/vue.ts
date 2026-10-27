@@ -44,10 +44,20 @@ function collectByPatterns(content: string, patterns: RegExp[], codes: Set<strin
   }
 }
 
+/**
+ * 只扫 SFC 的 template 块，避免 script 里的 permission 赋值被当成页面元素。
+ * 取第一个 <template 到最后一个 </template>：页面里常有 <template #default> 插槽，不能在第一个闭合标签处截断。
+ */
+function extractTemplateBlock(content: string): string {
+  const start = content.search(/<template\b/i);
+  const end = content.lastIndexOf('</template>');
+  return start >= 0 && end > start ? content.slice(start, end) : '';
+}
+
 function extractPermissionCodes(content: string): string[] {
   const codes = new Set<string>();
   collectByPatterns(
-    content,
+    extractTemplateBlock(content),
     [
       /v-permission\s*=\s*"'([^'\\]*)'"/g,
       /v-permission\s*=\s*'"([^"\\]*)"'/g,

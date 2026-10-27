@@ -23,6 +23,7 @@ import { useRouter } from 'vue-router'
 import { useAccessTokenStore } from '../../platform/stores/token.store'
 import { useSessionStore } from '../../platform/stores/session.store'
 import { sso } from '../../runtime/auth/sso'
+import { restoreAfterAuth } from '../../runtime/navigation/sub-app-redirect'
 
 const router = useRouter()
 const isLoading = ref(true)
@@ -46,6 +47,8 @@ async function processCallback(): Promise<void> {
     tokenStore.setStatus('NORMAL')
     await useSessionStore().bootstrapSession()
     await router.replace('/')
+    // 菜单可能已在回调页上加载完、错过了恢复，离开回调页后再恢复一次深链
+    restoreAfterAuth(router)
   } catch (err) {
     tokenStore.setStatus('NORMAL')
     error.value = err instanceof Error ? err.message : '认证处理失败'

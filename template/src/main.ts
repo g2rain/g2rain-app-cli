@@ -10,22 +10,23 @@ import { createThemeCapability } from '@g2rain/platform/theme';
 import App from './App.vue';
 import { initRouter, updateRouter } from '@runtime/router';
 import { setupStore } from '@platform/stores/setup';
-import { i18n, loadAndApplyI18nMessages, t } from '@platform/i18n';
+import { i18n, t } from '@platform/i18n';
 import { localeBoot } from '@runtime/boot/locale.boot';
 import { isAloneMode } from '@shared/utils/mode.util';
 import { redirectToMainShellGatewayIfNeeded } from '@shared/utils/shell-gateway.util';
 import { getQiankunSubAppEventAdapter, registerQiankunLifecycle } from '@platform/apps';
 import type { MicroAppProps } from '@platform/apps';
-import { requestSharedAuth } from '@platform/apps';
+import { registerHostIdentity, requestSharedAuth, unregisterHostIdentity } from '@platform/apps';
 import {
   initApplicationResources,
   initRoutesFromResources,
   isSsoCallbackPath,
   setupTokenExpiredWatcher,
-  teardownTokenExpiredWatcher,
 } from '@runtime/boot';
-import { permissionPlugin } from '@/components/permission';
+import { createPermissionPlugin } from '@g2rain/platform/permission/vue';
+import { permissionProvider } from '@runtime/boot/resource';
 import { setupG2rainUi } from '@runtime/ui/setup-g2rain-ui';
+import { silenceNotified } from '@runtime/http/notified';
 import { showErrorMessage } from '@/components/ErrorMessage';
 import { loadElementPlusLocaleByCode } from '@platform/locale';
 import { useLocaleStore } from '@platform/stores/locale.store';
@@ -140,8 +141,9 @@ function bindRouteSync(router: Router, context: RuntimeContext): () => void {
   }
 
   return router.afterEach((to) => {
-    const routePath = to.path;
-    const fullPath = `/${activeRule}/${routePath}`.replace(/\/{2,}/g, '/');
+    // 带上查询串与 hash：主应用据此恢复子页面（如会话详情的 conversationId）
+    const routePath = to.fullPath;
+    const fullPath = `/${activeRule}/${to.path}`.replace(/\/{2,}/g, '/') + to.fullPath.slice(to.path.length);
     const message = createSubDirectedMessage(
       {
         applicationCode: context.applicationCode,
@@ -176,70 +178,76 @@ async function createRouterForContext(context: RuntimeContext): Promise<Router> 
       return initRouter([]);
     }
     console.error('[platform] 资源路由初始化失败:', error);
-    if (context.mode === 'integrated') {
-      throw new Error('MAIN_AUTH_BRIDGE_UNAVAILABLE');
-    }
     throw error;
   }
 }
 
-function installApplication(vueApp: VueApp): void {
+function installApplication(vueApp: VueApp): () => void {
+  silenceNotified(vueApp);
   setupStore(vueApp);
-  setupTokenExpiredWatcher();
+  const releaseWatcher = setupTokenExpiredWatcher();
   vueApp.use(i18n);
   vueApp.use(ElementPlus);
   setupG2rainUi(vueApp);
-  vueApp.use(permissionPlugin);
+  vueApp.use(createPermissionPlugin({ provider: permissionProvider }));
   localeBoot.start();
+  return releaseWatcher;
 }
 
 const definition = createStandardSubPlatform({
   applicationCode: APPLICATION_CODE,
   async createApplication(context) {
     const vueApp = createApp(App);
-    installApplication(vueApp);
+    const releaseWatcher = installApplication(vueApp);
 
-    const ssoCallback = context.mode === 'standalone' && isSsoCallbackPath();
-    const router = await createRouterForContext(context);
-    vueApp.use(router);
-    const stopRouteSync = bindRouteSync(router, context);
+    try {
+      const ssoCallback = context.mode === 'standalone' && isSsoCallbackPath();
+      const router = await createRouterForContext(context);
+      vueApp.use(router);
+      const stopRouteSync = bindRouteSync(router, context);
 
-    return {
-      async mount(container) {
-        if (ssoCallback) {
+      return {
+        async mount(container) {
+          if (ssoCallback) {
+            vueApp.mount(resolveMountNode(container));
+            try {
+              await initApplicationResources(router);
+              // return_url 只在这里读取：资源路由已注册，避免与 SsoCallback 页面重复跳转
+              const returnUrl = localStorage.getItem('return_url') || '/';
+              localStorage.removeItem('return_url');
+              await router.replace(returnUrl);
+              await router.isReady();
+            } catch (error) {
+              console.error('[platform] SSO 回调后资源加载失败:', error);
+            }
+            return;
+          }
+          // 先结算初始路由再 mount，避免 MemoryHistory 默认 / 先闪出 Home
+          await settleInitialRoute(router, context.initialRoute);
           vueApp.mount(resolveMountNode(container));
-          try {
-            await initApplicationResources(router);
-            const returnUrl = localStorage.getItem('return_url') || '/';
-            localStorage.removeItem('return_url');
-            await router.replace(returnUrl);
-            await router.isReady();
-          } catch (error) {
-            console.error('[platform] SSO 回调后资源加载失败:', error);
+        },
+        async update(next) {
+          if (APPLICATION_CODE) {
+            try {
+              const resourceRoutes = await initRoutesFromResources();
+              updateRouter(router, resourceRoutes);
+            } catch (error) {
+              console.error('[platform] 路由更新失败:', error);
+            }
           }
-          return;
-        }
-        // 先结算初始路由再 mount，避免 MemoryHistory 默认 / 先闪出 Home
-        await settleInitialRoute(router, context.initialRoute);
-        vueApp.mount(resolveMountNode(container));
-      },
-      async update(next) {
-        if (APPLICATION_CODE) {
-          try {
-            const resourceRoutes = await initRoutesFromResources();
-            updateRouter(router, resourceRoutes);
-          } catch (error) {
-            console.error('[platform] 路由更新失败:', error);
-          }
-        }
-        await replaceIfMatched(router, next.initialRoute);
-      },
-      unmount() {
-        stopRouteSync();
-        localeBoot.stop();
-        vueApp.unmount();
-      },
-    };
+          await replaceIfMatched(router, next.initialRoute);
+        },
+        unmount() {
+          releaseWatcher();
+          stopRouteSync();
+          localeBoot.stop();
+          vueApp.unmount();
+        },
+      };
+    } catch (error) {
+      releaseWatcher();
+      throw error;
+    }
   },
   i18n: {
     engine: {
@@ -250,9 +258,7 @@ const definition = createStandardSubPlatform({
       translate(key) {
         return t(key);
       },
-      loadMessages(locale) {
-        return loadAndApplyI18nMessages(locale);
-      },
+      // 不提供 loadMessages：setLocale（applyFromMain）会加载文案，避免同一语言加载两次
     },
     uiLocale: {
       async applyLocale(locale) {
@@ -302,6 +308,12 @@ async function mountIntegrated(props: MicroAppProps): Promise<void> {
   // 挂载前向 Shell 请求共享认证；禁止在未登录态初始化资源。
   await requestSharedAuth(resolved.context, { reason: 'mount' });
 
+  registerHostIdentity({
+    applicationCode: resolved.context.applicationCode,
+    viewId: resolved.context.viewId,
+    instanceId: resolved.instanceId,
+  });
+
   try {
     await definition.mount({
       instanceId: resolved.instanceId,
@@ -309,7 +321,7 @@ async function mountIntegrated(props: MicroAppProps): Promise<void> {
       container: props.container,
     });
   } catch (error) {
-    teardownTokenExpiredWatcher();
+    unregisterHostIdentity(resolved.instanceId);
     throw error;
   }
 }
@@ -321,8 +333,11 @@ async function updateIntegrated(props: MicroAppProps): Promise<void> {
 
 async function unmountIntegrated(props: MicroAppProps): Promise<void> {
   const resolved = resolveSubHostProps(props, hostDefaults());
-  await definition.unmount(resolved.instanceId);
-  teardownTokenExpiredWatcher();
+  try {
+    await definition.unmount(resolved.instanceId);
+  } finally {
+    unregisterHostIdentity(resolved.instanceId);
+  }
 }
 
 async function mountStandalone(): Promise<void> {
@@ -336,23 +351,18 @@ async function mountStandalone(): Promise<void> {
     throw new Error('VITE_APPLICATION_CODE 未配置，请在环境变量中配置应用编码');
   }
 
-  try {
-    await definition.mount({
+  await definition.mount({
+    instanceId: STANDALONE_INSTANCE_ID,
+    context: {
+      applicationCode: code,
+      viewId: STANDALONE_INSTANCE_ID,
       instanceId: STANDALONE_INSTANCE_ID,
-      context: {
-        applicationCode: code,
-        viewId: STANDALONE_INSTANCE_ID,
-        instanceId: STANDALONE_INSTANCE_ID,
-        mode: 'standalone',
-        contextPath: CONTEXT_PATH,
-        theme: 'light',
-      },
-      container,
-    });
-  } catch (error) {
-    teardownTokenExpiredWatcher();
-    throw error;
-  }
+      mode: 'standalone',
+      contextPath: CONTEXT_PATH,
+      theme: 'light',
+    },
+    container,
+  });
 }
 
 registerQiankunLifecycle({

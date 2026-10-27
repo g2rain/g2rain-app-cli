@@ -46,6 +46,8 @@ export async function initMenus(): Promise<void> {
   } catch (error) {
     console.warn('[menu.boot] failed to load authority menus:', error)
     menuStore.setMenuItems(shellItems)
+    // 标记已初始化并尝试恢复深链；恢复失败时 restoreAfterAuth 会回首页
+    tryRestore()
   }
 }
 
@@ -63,7 +65,7 @@ export function startMenuBoot(): void {
 
   watch(
     () => tokenStore.isLogin,
-    async (loggedIn) => {
+    async (loggedIn, wasLoggedIn) => {
       if (loggedIn) {
         menuStore.reset()
         resetNavigationRestoreState()
@@ -71,7 +73,10 @@ export function startMenuBoot(): void {
         return
       }
       menuStore.reset()
-      clearReturnUrl()
+      // Only clear on real logout — immediate boot (wasLoggedIn undefined) must keep deep-link return_url
+      if (wasLoggedIn === true) {
+        clearReturnUrl()
+      }
       resetNavigationRestoreState()
       menuStore.setMenuItems(shellMenusAsMenuItems())
     },

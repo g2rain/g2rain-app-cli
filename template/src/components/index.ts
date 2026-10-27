@@ -5,4 +5,3 @@
  */
 
 export * from './ErrorMessage';
-export * from './permission';

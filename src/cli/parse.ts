@@ -230,6 +230,12 @@ export function parseCreateArgs(
     args.familyExplicit = false;
   }
 
+  if (args.port !== undefined && args.family !== 'frontend-shell') {
+    throw new Error(
+      '--port is only valid for shell / --family frontend-shell (not app)',
+    );
+  }
+
   if (args.withLegacy && args.family !== 'frontend-shell') {
     throw new Error(
       '--with-legacy is only valid for shell / --family frontend-shell (not app, generate, or build-config)',

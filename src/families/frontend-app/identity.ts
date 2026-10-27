@@ -31,7 +31,7 @@ export async function rewriteFrontendAppIdentity(
           `${projectName} 是 g2rain Vue 3 微前端子应用，提供`,
         )
         .replace(
-          /本仓库是“被生成的应用模板”，不是 CLI 本身。[^\r\n]*/,
+          /本仓库是“被生成的应用模板”源仓，不是 CLI 本身。[^\r\n]*/,
           `本项目由 [g2rain-app-cli](https://github.com/g2rain/g2rain-app-cli) 基于 [g2rain-app-template](${TEMPLATE_REPOSITORY}) 生成。`,
         ),
     ),
@@ -53,20 +53,16 @@ export async function rewriteFrontendAppIdentity(
           '本目录维护当前业务应用的实现、生成器、部署细节和',
         )
         .replace(
-          '修改模板将影响所有以后创建的应用',
-          '修改公共工程能力时应评估与官方模板及其他业务应用的兼容性',
+          '下面是维护本模板仓库时的文档。',
+          '下面是维护本业务应用时的文档。',
         ),
     ),
     rewriteTextFile(targetDir, 'docs/architecture/overview.md', (content) =>
       content
-        .replace('本页描述 g2rain-app-template 的具体落地。', `本页描述 ${projectName} 的具体落地。`)
+        .replace('本页描述本模板的具体落地。', `本页描述 ${projectName} 的具体落地。`)
         .replace(
-          'g2rain-app-template 是生成后即可运行的 Vue 3 子应用模板。外部 CLI 负责复制和替换占位符；本仓库负责生成项目的运行架构、平台能力、业务页面约定、生成工具和部署基线。',
+          'g2rain-app-template 是官方 Vue 3 微前端子应用工程模板。本仓库负责模板运行架构、平台能力、示例页面、生成工具和部署配置。',
           `${projectName} 是由 [g2rain-app-template](${TEMPLATE_REPOSITORY}) 生成的 Vue 3 子应用。本仓库负责当前业务应用的运行架构、平台能力、业务页面、生成工具和部署配置。`,
-        )
-        .replace(
-          '本仓库负责模板默认能力和生成后工程结构',
-          '本仓库负责当前业务应用能力和工程结构',
         ),
     ),
     rewriteTextFile(targetDir, 'docs/decisions/README.md', (content) =>
@@ -115,8 +111,8 @@ export async function rewriteFrontendAppIdentity(
         .replace(/^packageNameTemplate: "\{\{PROJECT_NAME\}\}"$/m, `packageName: ${projectName}`)
         .replace(/^  role: frontend-app-template$/m, '  role: frontend-app')
         .replace(
-          /^  note: 中央 Profile 管理跨 App 公共规则，本项目维护模板实现、生成工具、部署细节和当前偏差。$/m,
-          '  note: 中央 Profile 管理跨 App 公共规则，本项目维护业务实现、生成工具、部署细节和当前偏差。',
+          /^  note: 中央 Profile 管理跨 App 公共规则，本项目维护模板实现、生成工具、部署细节和当前偏差。HTTP 公共内核经 @g2rain\/http，生命周期经 @g2rain\/platform\/sub；集成挂载要求显式 applicationCode\/viewId\/instanceId（appKey===instanceId），认证经 Auth Bridge，不再接受仅 appKey 或 props Token 的旧壳路径。$/m,
+          '  note: 中央 Profile 管理跨 App 公共规则，本项目维护业务实现、生成工具、部署细节和当前偏差。HTTP 公共内核经 @g2rain/http，生命周期经 @g2rain/platform/sub；集成挂载要求显式 applicationCode/viewId/instanceId（appKey===instanceId），认证经 Auth Bridge。',
         )
         .replace(/\r?\ntemplate:\r?\n[\s\S]*?(?=layers:)/, `\n${generation}`);
     }),

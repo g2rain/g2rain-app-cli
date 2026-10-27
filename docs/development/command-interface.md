@@ -80,6 +80,14 @@ g2rain-app build-config [--cwd .] [--route-map path] [--views path] [--out path]
 
 当前不生成 `api-endpoints.json`。
 
+## 参数校验
+
+交互与非交互模式使用同一校验，失败退出 1：
+
+- 项目名：`^[a-z0-9][a-z0-9-]*$`（小写字母、数字、连字符）。
+- Context Path：去掉首尾 `/` 后按 `/` 分段，每段 `^[a-z0-9][a-z0-9_-]*$`。
+- `generate` 表名：`^[A-Za-z_][A-Za-z0-9_]*$`；任一表在 SQL 中不存在时，写入任何文件前失败。
+
 ## 退出行为
 
 - 目标目录已存在（create）：退出 1

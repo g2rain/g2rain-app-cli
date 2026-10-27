@@ -25,11 +25,14 @@ const {
 } = await import(
   pathToFileURL(path.join(repoRoot, 'scripts', 'lib', 'template-meta.mjs')).href
 );
-const { shouldCopyShell, includeInTreeHash } = await import(
+const { shouldCopyShell, includeInTreeHash, DOTFILES, storeDotfiles } = await import(
   pathToFileURL(path.join(repoRoot, 'scripts', 'lib', 'template-sync-filter.mjs')).href
 );
 const { scaffoldProject } = await import(
   pathToFileURL(path.join(repoRoot, 'dist', 'index.js')).href
+);
+const { DOTFILES: SCAFFOLD_DOTFILES } = await import(
+  pathToFileURL(path.join(repoRoot, 'dist', 'scaffold', 'copy.js')).href
 );
 
 test('template tag pattern accepts semver tags', () => {
@@ -265,4 +268,55 @@ test('scaffold excludes snapshot markers from generated project', async (t) => {
   const project = await readFile(path.join(generated, 'docs', 'project.yaml'), 'utf8');
   assert.match(project, /tag: "v0\.1\.0-draft"/);
   assert.match(project, new RegExp(`commit: "${commit}"`));
+});
+
+test('sync and scaffold share the same dotfile mapping', () => {
+  assert.deepEqual([...SCAFFOLD_DOTFILES], [...DOTFILES]);
+});
+
+test('storeDotfiles renames nested dotfiles and keeps tree hash', async (t) => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'g2rain-dotfiles-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await mkdir(path.join(dir, 'sub'), { recursive: true });
+  await writeFile(path.join(dir, '.gitignore'), 'dist\n', 'utf8');
+  await writeFile(path.join(dir, '.npmrc'), 'fund=false\n', 'utf8');
+  await writeFile(path.join(dir, 'sub', '.gitignore'), '*.log\n', 'utf8');
+  await writeFile(path.join(dir, 'a.txt'), 'a', 'utf8');
+
+  const before = await hashTemplateTree(dir);
+  await storeDotfiles(dir);
+  assert.equal(await fs.pathExists(path.join(dir, '.gitignore')), false);
+  assert.equal(await fs.pathExists(path.join(dir, '.npmrc')), false);
+  assert.equal(await readFile(path.join(dir, '_gitignore'), 'utf8'), 'dist\n');
+  assert.equal(await readFile(path.join(dir, '_npmrc'), 'utf8'), 'fund=false\n');
+  assert.ok(await fs.pathExists(path.join(dir, 'sub', '_gitignore')));
+  assert.equal(await hashTemplateTree(dir), before);
+});
+
+test('storeDotfiles rejects reserved stored names in source', async (t) => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'g2rain-dotfiles-reserved-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await writeFile(path.join(dir, '_gitignore'), 'x', 'utf8');
+  await assert.rejects(() => storeDotfiles(dir), /Reserved snapshot file name/);
+});
+
+test('bundled snapshots store dotfiles under npm-safe names', async () => {
+  const expected = {
+    template: ['_gitignore', '_npmrc'],
+    'template-shell': ['_gitignore'],
+  };
+  for (const [dir, stored] of Object.entries(expected)) {
+    for (const name of stored) {
+      assert.ok(await fs.pathExists(path.join(repoRoot, dir, name)), `missing ${dir}/${name}`);
+    }
+  }
+  for (const dir of ['template', 'template-shell', 'template-shell-legacy']) {
+    for (const name of DOTFILES.keys()) {
+      assert.equal(
+        await fs.pathExists(path.join(repoRoot, dir, name)),
+        false,
+        `${dir}/${name} would be dropped by npm pack`,
+      );
+    }
+  }
 });

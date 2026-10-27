@@ -115,6 +115,8 @@ server {
         proxy_set_header   Host    $host;
         proxy_set_header   X-Real-IP   $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        # 机构类型只能由 shell 写入；需要按机构类型过滤身份时参照 admin-shell 增加 identities 规则
+        proxy_set_header   X-Identity-Organ-Type "";
     }
 
     location ^~ ${CONTEXT_PATH}/auth/ {

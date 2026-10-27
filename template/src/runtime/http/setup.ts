@@ -6,7 +6,10 @@
  * - 注入 getLocale / DPoP applicationCode
  */
 
+import { ElMessage } from 'element-plus';
+import type { G2rainHttpError } from '@g2rain/http';
 import { loadingManager } from '@/components/loading';
+import { markNotified } from './notified';
 import { sso } from '@runtime/auth';
 import {
   updateHttpClientOptions,
@@ -17,6 +20,7 @@ import {
 import { useAccessTokenStore } from '@platform/stores';
 import { useLocaleStore } from '@platform/stores/locale.store';
 import { env } from '@shared/env';
+import { isQiankunRuntime } from '@shared/utils/mode.util';
 
 /**
  * 将 platform 层的 token.store 适配为 HttpAuthSession
@@ -47,6 +51,9 @@ async function defaultAuthErrorHandler(
 
   loadingManager.hide();
 
+  // 嵌入主壳时登录态归主壳管理：不改主壳下发的 client，也不把整个页面带去子应用自己的 SSO
+  if (isQiankunRuntime()) return;
+
   const store = useAccessTokenStore();
   if (store.client) {
     store.client.isAuthenticated = false;
@@ -57,6 +64,16 @@ async function defaultAuthErrorHandler(
   } catch (redirectError) {
     console.error('[Runtime HTTP] redirectToSSO failed:', redirectError);
   }
+}
+
+/**
+ * 请求失败的统一提示：显示后端返回的 errorMessage。
+ * 登录态错误由认证流程处理，不重复提示。
+ */
+function notifyHttpError(error: G2rainHttpError): void {
+  if (error.source === 'auth') return;
+  markNotified(error);
+  ElMessage.error(error.message);
 }
 
 /**
@@ -71,6 +88,7 @@ export function initHttp(): void {
   const defaultOptions: Partial<HttpClientOptions> = {
     authSessionProvider,
     authErrorHandler: defaultAuthErrorHandler,
+    onError: notifyHttpError,
     ensureAccessToken: (opts) => sso.ensureAccessToken(opts),
     getLocale: () => useLocaleStore().locale || undefined,
     dpop: { applicationCode: env.VITE_APPLICATION_CODE },

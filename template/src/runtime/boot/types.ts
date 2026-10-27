@@ -3,7 +3,7 @@
  * 用于平台资源管理：页面、页面元素、API端点
  */
 
-import type { PageElementStatus } from '@/components/permission';
+import type { PageElementStatus } from '@g2rain/platform/permission';
 
 /**
  * 资源页面表（resource_page）
