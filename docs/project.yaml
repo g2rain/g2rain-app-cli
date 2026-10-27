@@ -129,12 +129,12 @@ commands:
   install: npm ci
   build: npm run build
   dev: npm run dev
-  installCli: npm install -g create-g2rain-app@1.0.0
+  installCli: npm install -g create-g2rain-app@latest
   interactive: g2rain-app
   nonInteractive: g2rain-app app <project-name> --context-path <context-path>
   generate: g2rain-app generate --tables=<tables>
   buildConfig: g2rain-app build-config
-  ciSmoke: npx create-g2rain-app@1.0.0 app <project-name> --context-path <context-path>
+  ciSmoke: node dist/index.js app <project-name> --context-path <context-path>
   syncTemplates: npm run sync:templates
   verifyTemplateSnapshots: npm run verify:template-snapshots
   packageDryRun: npm pack --dry-run

@@ -74,6 +74,13 @@ export function resolveSourceCommit(sourceRoot, ref) {
   }
 
   assertSourceHeadMatches(sourceRoot, commit, ref);
+  const changes = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], {
+    cwd: sourceRoot,
+    encoding: 'utf-8',
+  }).trim();
+  if (changes) {
+    throw new Error('Template source must be clean before sync; commit changes and select an approved Git tag.');
+  }
   return commit.toLowerCase();
 }
 

@@ -136,6 +136,22 @@ test('resolveSourceCommit requires refs/tags and does not accept a same-named br
   assert.doesNotThrow(() => assertSourceHeadMatches(dir, second, 'HEAD'));
 });
 
+test('sync rejects tracked and untracked changes at the selected tag', async (t) => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'g2rain-dirty-source-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  git(dir, ['init']);
+  await writeFile(path.join(dir, 'README.md'), 'one\n', 'utf8');
+  git(dir, ['add', '-A']);
+  git(dir, ['commit', '-m', 'template']);
+  git(dir, ['tag', 'v0.1.0']);
+  assert.equal(resolveSourceCommit(dir, 'v0.1.0'), git(dir, ['rev-parse', 'HEAD']));
+  await writeFile(path.join(dir, 'README.md'), 'changed\n', 'utf8');
+  assert.throws(() => resolveSourceCommit(dir, 'v0.1.0'), /source must be clean/);
+  await writeFile(path.join(dir, 'README.md'), 'one\n', 'utf8');
+  await writeFile(path.join(dir, 'new.txt'), 'untracked\n', 'utf8');
+  assert.throws(() => resolveSourceCommit(dir, 'v0.1.0'), /source must be clean/);
+});
+
 test('tree hash is deterministic and ignores markers', async (t) => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'g2rain-hash-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
