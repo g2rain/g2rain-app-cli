@@ -5,6 +5,7 @@
  */
 
 import type { Router } from 'vue-router'
+import { isDeepLinkLeavingGateway, setDeepLinkLeavingGateway } from '../../shared/deep-link-flags'
 import { getContextPath, getPathWithContextPath } from '../../shared/env'
 import { stripActiveRule } from '../../shared/url'
 import { microAppInstanceId, microAppViewIdFromMenuKey } from '../../shared/qiankun-id'
@@ -185,7 +186,10 @@ export function saveReturnUrl(fullPath?: string): void {
   const ctx = normalizePathname(getContextPath())
   if (ctx !== '/' && (pathname === ctx || pathname.startsWith(`${ctx}/`))) {
     if (!isRedirectGatewayPath(pathname)) {
-      // Stay within shell — no micro restore needed
+      // 壳内页面也需要在 SSO 后恢复；根页无需覆盖已有待恢复地址。
+      if (normalizePathname(pathname) !== ctx) {
+        localStorage.setItem(RETURN_URL_STORAGE_KEY, raw)
+      }
       return
     }
   }
@@ -289,10 +293,11 @@ export function findSubMenuItemByTargetPath(
   const longestRule = candidates.reduce((a, b) => (a.rule.length >= b.rule.length ? a : b)).rule
   const internalPath = stripActiveRule(longestRule, normalizedTarget)
 
-  const matching = candidates.filter((c) =>
+  const sameRule = candidates.filter((candidate) => candidate.rule === longestRule)
+  const matching = sameRule.filter((c) =>
     menuItemMatchesInternalPath(c.menuItem, internalPath),
   )
-  const pool = matching.length > 0 ? matching : candidates
+  const pool = matching.length > 0 ? matching : sameRule
 
   let bestItem = pool[0].menuItem
   let bestScore = scoreSubMenuItemForInternalPath(bestItem, pool[0].rule, internalPath)
@@ -411,16 +416,29 @@ function openShellTarget(fullPath: string): boolean {
  */
 export function applyNavigationTarget(router: Router, fullPath: string): boolean {
   if (isRedirectGatewayPath(fullPath)) {
+    if (isDeepLinkLeavingGateway()) return true
     const parsed = parseRedirectGateway(fullPath)
     if (!parsed) {
       return false
     }
-    const opened = openSubTarget(parsed.targetFullPath)
+    const leavingGateway = router.currentRoute.value.name === 'SubAppRedirectGateway'
+    if (leavingGateway) setDeepLinkLeavingGateway(true)
+    let opened: boolean
+    try {
+      opened = openSubTarget(parsed.targetFullPath)
+    } catch (error) {
+      if (leavingGateway) setDeepLinkLeavingGateway(false)
+      throw error
+    }
+    if (!opened && leavingGateway) setDeepLinkLeavingGateway(false)
     if (opened) {
       // Leave gateway bare page; keep Workspace address sync as source of truth.
-      if (router.currentRoute.value.name === 'SubAppRedirectGateway') {
+      if (leavingGateway) {
         void router.replace('/').then(() => {
+          setDeepLinkLeavingGateway(false)
           syncBrowserAddressForTab(useWorkspaceStore().activeTab)
+        }).catch(() => {
+          setDeepLinkLeavingGateway(false)
         })
       }
     }

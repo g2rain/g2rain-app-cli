@@ -3,7 +3,7 @@ name: g2rain-app-template
 family: frontend-app-template
 role: g2rain Vue 3 微前端子应用工程模板
 packageNameTemplate: "{{PROJECT_NAME}}"
-version: 1.0.0
+version: 1.0.1
 license: Apache-2.0
 
 architectureBaseline:

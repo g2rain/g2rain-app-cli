@@ -4,9 +4,9 @@
   "family": "frontend-shell",
   "kind": "shell-legacy-overlay",
   "sourceRepository": "https://github.com/g2rain/g2rain-shell-template",
-  "sourceRef": "v1.0.0",
-  "sourceCommit": "5f1f13524c27a9d086d536fdcb186d5880d3567f",
+  "sourceRef": "v1.0.1",
+  "sourceCommit": "f20d42e832632e373950038ac06083b029f71624",
   "contentSha256": "sha256:86bac413acaa0c250445b86e672ecd364a5d14383948cfe33a2aeff6a220b008",
-  "syncedAt": "2026-10-01T14:17:40.306Z",
+  "syncedAt": "2026-10-27T16:59:18.517Z",
   "syncWorkflow": ".github/workflows/sync-templates.yml"
 }

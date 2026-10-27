@@ -3,6 +3,7 @@ import { useRuntimeStore } from '../stores/runtime.store'
 import { SHELL_PAGE_PATHS } from '../menus/shell-menus'
 import { getPathWithContextPath } from '../../shared/env'
 import { replaceBrowserPathname, wrapActiveRule } from '../../shared/url'
+import { isDeepLinkLeavingGateway } from '../../shared/deep-link-flags'
 
 /**
  * Sync browser address bar to the active Tab (main-shell TabBar semantics).
@@ -10,6 +11,7 @@ import { replaceBrowserPathname, wrapActiveRule } from '../../shared/url'
  */
 export function syncBrowserAddressForTab(tab: WorkspaceTab | undefined | null): void {
   if (!tab) return
+  if (isDeepLinkLeavingGateway()) return
 
   if (tab.kind === 'shell') {
     const path = tab.shellPage ? SHELL_PAGE_PATHS[tab.shellPage] : '/'

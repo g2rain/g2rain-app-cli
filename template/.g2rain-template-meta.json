@@ -4,9 +4,9 @@
   "family": "frontend-app",
   "kind": "app-base",
   "sourceRepository": "https://github.com/g2rain/g2rain-app-template",
-  "sourceRef": "v1.0.0",
-  "sourceCommit": "b236cde5bac0ffbafcef66f4dfc5fc4fc8e78ddf",
-  "contentSha256": "sha256:f83e62e953ffdca73865291f67f0812ee06efe42f8a4e02d09e78a3eb779b5f0",
-  "syncedAt": "2026-10-01T14:17:40.015Z",
+  "sourceRef": "v1.0.1",
+  "sourceCommit": "24b72738c96a47d3743937f73160767769e099b8",
+  "contentSha256": "sha256:7560d81ce1d526544ff230d9c29fc9abc55870c4a6d585a45cdc17ccf4e425a1",
+  "syncedAt": "2026-10-27T16:59:18.215Z",
   "syncWorkflow": ".github/workflows/sync-templates.yml"
 }

@@ -4,7 +4,7 @@
 
 | ID | 描述 | 影响 | 退出条件 |
 | --- | --- | --- | --- |
-| TPL-001 | 已接菜单挂载 + Tab↔地址栏同步 + `MicroAppFallback` + **深链 `restoreAfterAuth` + `/redirect` Gateway + Vite SPA fallback**；生产 Nginx 微路径 document 回退待环境验证 | 生产若未配置微路径回退到壳 index，刷新 `/member/...` 仍 404 | 目标环境完成 Nginx（或等价）微路径 document → 壳 `index.html` 后关闭本行 |
+| TPL-001 | 已接菜单挂载 + Tab↔地址栏同步 + `MicroAppFallback` + **深链 `restoreAfterAuth` + `/redirect` Gateway + Vite SPA fallback**；网关离开单飞 + 离开期间抑制 shell URL 同步；生产 Nginx 微路径 document 回退待环境验证 | 生产若未配置微路径回退到**本壳** index（`/{CONTEXT_PATH}/index.html`）而回退到其他壳（如 `/main/`），F5 会落到错误 Context Path | 目标环境按 `nginx/default.conf.example` 把微路径 document 回退到本壳 `index.html` 后关闭本行 |
 | TPL-002 | Token Store / SSO / `bootstrapSession` 已落地；联调冒烟待真实 IAM + Gateway + Sign | 本地无 SSO / Backend 配置时启动或换票失败 | 配置 `VITE_SSO_BASE_URL` + `VITE_BACKEND_ORIGIN` 完成未登录→回调→刷新→退出后关闭本行 |
 | TPL-005 | OpenResty/Lua 签名已纳入模板；容器联调与密钥注入待各环境验证 | 生成后需挂载 `lua/keys` | 在目标环境完成 `docker compose -f docker-compose.sign.yml` 或等价镜像冒烟后关闭本行 |
 | TPL-006 | ~~REQUEST_TOKEN / route-change 未接~~ → 已接 | — | 可关闭本行 |
