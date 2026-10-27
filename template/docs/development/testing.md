@@ -14,6 +14,8 @@ npm run build
 
 ## 按变化选择验证
 
+字典 Provider 搜索参数：顶层 `params.key` 优先于兼容字段 `params.query.key`，显式空字符串表示清空搜索。验证文字、数字、清空及旧字段输入，确认最终 `DictItemApi.select` 的 `key` 正确；该修复须在模板发布后同步至 CLI 内置快照。
+
 | 变化 | 最低验证 |
 | --- | --- |
 | 类型、组件、页面 | `npm run build`，浏览器验证主要交互和错误路径 |

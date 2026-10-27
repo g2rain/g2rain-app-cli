@@ -58,7 +58,7 @@
 
 ## 认证
 
-1. 未登录访问受保护路由 → `saveReturnUrl`（若微路径）→ `sso.redirectToSSO`（需 `VITE_SSO_BASE_URL`）
+1. 未登录访问受保护路由 → `saveReturnUrl`（若微路径）→ `sso.redirectToSSO`（需 `VITE_SSO_BASE_URL`；`/auth/authorize` 查询串含 `applicationCode`，值为 `VITE_APPLICATION_CODE`，供 IAM 选用登录策略）
 2. IAM 回调 `/sso_callback` → `generateToken(code)` → `bootstrapSession` → `/`（菜单 watch 随后 `restoreAfterAuth`）
 3. HTTP 鉴权：`authSessionProvider` + `ensureAccessToken`；失败走 `authErrorHandler` 回 SSO
 4. 子应用 `REQUEST_TOKEN` → 壳 `ensureAccessToken` 单飞 → `TOKEN_RESPONSE`（token / tokenKid / client 浅拷贝；不自监听）

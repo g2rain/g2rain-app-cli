@@ -37,6 +37,7 @@ async function processCallback(): Promise<void> {
   const code = params.get('code')
   const clientId = params.get('clientId')
   if (!code || !clientId) {
+    tokenStore.setStatus('NORMAL')
     error.value = '未找到授权码或客户端 ID'
     isLoading.value = false
     return

@@ -4,9 +4,9 @@
 
 | 项 | 状态 |
 | --- | --- |
-| `@g2rain/theme` | 依赖已声明；由 ThemeController 驱动 CSS / `data-g2-theme` |
+| `@g2rain/theme` | 固定为 `1.0.1`；由 ThemeController 驱动 CSS / `data-g2-theme` |
 | `@g2rain/platform/theme` | `createThemeController` 在 `platform/theme` 单例化 |
-| `@g2rain/ui` | `boot` 中 `app.use(G2rainUi, …)` |
+| `@g2rain/ui` | 固定为 `1.0.1`；`boot` 中 `app.use(G2rainUi, …)` |
 | Element Plus | 全量注册，供后续壳组件使用 |
 | 持久化 | `localStorage` 键 `g2rain-shell-theme`（壳侧拥有） |
 | 语言偏好 | Header「偏好」下拉；键 `g2rain-shell-locale`；驱动 `G2rainUi` locale 与已挂载实例 `notifyLocale` |

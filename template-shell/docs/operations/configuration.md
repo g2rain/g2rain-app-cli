@@ -8,7 +8,7 @@
 | `VITE_CONTEXT_PATH` | 浏览器与 Vite `base` 前缀 | `/{{CONTEXT_PATH}}`（推荐默认 `admin` → `/admin`） | 同左（脚手架写入具体值） |
 | `VITE_SERVER_PORT` | 开发服务器端口 | `{{DEV_SERVER_PORT}}`（推荐 `3000`） | **不写**（生产无 Vite server） |
 | `VITE_BACKEND_ORIGIN` | 开发期 Vite 代理上游（`/api`、`/auth`、`/lua`、`/keys`） | 必填（示例 `http://localhost:8080`） | **不写**（同域，与 main-shell 一致） |
-| `VITE_APPLICATION_CODE` | DPoP `acd` / 应用标识 | `{{PROJECT_NAME}}` | 同左 |
+| `VITE_APPLICATION_CODE` | DPoP `acd`、IAM `/auth/authorize` 的 `applicationCode` | `{{PROJECT_NAME}}` | 同左 |
 | `VITE_SSO_BASE_URL` | IAM / SSO 源（无尾斜杠） | 联调地址 | `${SSO_BASE_URL}` 占位；**运行时**由 `env-config.js` + 容器 `SSO_BASE_URL` 注入（main-shell 同款） |
 | `VITE_AUTH_END_POINT` | 授权端点 | `/auth/authorize` | 同左 |
 | `VITE_TOKEN_END_POINT` | 换票 / 刷新端点 | `/auth/token` | 同左 |

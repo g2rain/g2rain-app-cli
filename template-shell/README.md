@@ -17,6 +17,8 @@ g2rain 官方 Vue 3 Main Shell 模板：Header / Sidebar / Tab / Workspace / Foo
 
 ## 核心能力
 
+模板版本为 `1.0.1`，`@g2rain/platform`、`@g2rain/http`、`@g2rain/theme` 和 `@g2rain/ui` 均固定为已发布的 `1.0.1`。修改依赖后同步锁文件；CLI 内置模板须从包含本次修改的模板 Tag 重新同步。
+
 | 能力 | 当前实现 |
 | --- | --- |
 | Shell UI | Header、Sidebar、TabBar、Workspace、Footer；默认三个 Shell 本地页 |

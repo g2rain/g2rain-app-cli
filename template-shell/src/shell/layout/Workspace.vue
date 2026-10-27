@@ -12,10 +12,10 @@
       </section>
     </template>
 
+    <keep-alive>
+      <component :is="shellPageComponent" v-if="activeTab?.kind === 'shell' && shellPageComponent" :key="shellPage" />
+    </keep-alive>
     <template v-if="activeTab?.kind === 'shell'">
-      <keep-alive>
-        <component :is="shellPageComponent" v-if="shellPageComponent" :key="shellPage" />
-      </keep-alive>
       <section v-if="!shellPage" class="shell-page empty">
         <p>当前 Tab 没有可渲染的 Shell 页面。</p>
       </section>

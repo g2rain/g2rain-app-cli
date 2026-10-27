@@ -106,8 +106,6 @@
   padding: 16px;
   background-color: var(--g2-bg-page);
   min-height: 100%;
-  display: flex;
-  flex-direction: column;
   box-sizing: border-box;
 }
 
@@ -115,7 +113,6 @@
   margin-bottom: 16px;
   background-color: var(--g2-bg-container);
   border: 1px solid var(--g2-border-color-light);
-  flex-shrink: 0;
 }
 
 .title {
@@ -136,14 +133,6 @@
   color: var(--g2-text-primary);
   font-size: 14px;
   margin: 0;
-}
-
-.bottom-content {
-  margin-top: auto;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
 }
 
 .feature-row {
