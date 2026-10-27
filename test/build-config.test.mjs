@@ -35,11 +35,22 @@ test('build-config writes resources pages and page-elements', async (t) => {
   await writeFile(
     path.join(pageDir, 'index.vue'),
     `<template>
+  <el-table>
+    <el-table-column>
+      <template #default="{ row }">
+        <el-button v-permission="'demo:delete'">Delete</el-button>
+      </template>
+    </el-table-column>
+  </el-table>
   <el-button v-permission="'demo:add'">Add</el-button>
   <el-button v-permission="'demo:edit'">Edit</el-button>
   <StatusSwitch permission="demo:status_update" :model-value="'ACTIVE'" />
   <StatusSwitch :permission="dynamicCode" :model-value="'ACTIVE'" />
 </template>
+<script setup>
+const row = {}
+row.permission = 'a:b'
+</script>
 `,
     'utf8',
   );
@@ -49,7 +60,9 @@ test('build-config writes resources pages and page-elements', async (t) => {
   const resources = JSON.parse(await readFile(path.join(outDir, 'resources.json'), 'utf8'));
   assert.equal(resources.pages.length, 1);
   assert.equal(resources.pages[0].pageCode, 'demo');
-  assert.equal(resources.pageElements.length, 3);
+  // 插槽 <template #default> 之后的权限码也要收集到
+  assert.equal(resources.pageElements.length, 4);
+  assert.ok(resources.pageElements.some((e) => e.pageElementCode === 'demo:delete'));
   assert.ok(resources.pageElements.some((e) => e.pageElementCode === 'demo:add'));
   const statusElement = resources.pageElements.find((e) => e.pageElementCode === 'demo:status_update');
   assert.equal(statusElement?.pageElementType, 'switch');
@@ -58,5 +71,5 @@ test('build-config writes resources pages and page-elements', async (t) => {
   const pages = JSON.parse(await readFile(path.join(outDir, 'pages.json'), 'utf8'));
   assert.equal(pages.length, 1);
   const elements = JSON.parse(await readFile(path.join(outDir, 'page-elements.json'), 'utf8'));
-  assert.equal(elements.length, 3);
+  assert.equal(elements.length, 4);
 });

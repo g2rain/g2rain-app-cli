@@ -58,7 +58,7 @@ npx g2rain-app generate --tables=member
 npx g2rain-app build-config
 ```
 
-这样不受本机全局 CLI 版本漂移影响。若模板生成物仍含 `"create-g2rain-app": "file:../g2rain-app-cli"`，正式项目应改为上述 registry 版本后再 `npm install`。
+这样不受本机全局 CLI 版本漂移影响。CLI 生成 frontend-app 时会把模板中的 `"create-g2rain-app": "file:../g2rain-app-cli"` 改写为 `^<生成所用 CLI 版本>`。
 
 ### CLI 仓本地开发
 
