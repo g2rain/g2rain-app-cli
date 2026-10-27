@@ -1,5 +1,7 @@
 import { loadMicroApp, start, type MicroApp } from 'qiankun'
+import { setBootstrapMaxTime, setMountMaxTime } from 'single-spa'
 import type { RuntimeAdapter } from '../types/runtime-adapter'
+import { applyThemeToSubApps } from '../theme'
 
 let qiankunStarted = false
 
@@ -8,6 +10,9 @@ let qiankunStarted = false
  */
 export function ensureQiankunStarted(): void {
   if (qiankunStarted) return
+  // single-spa 默认 4s 超时：冷加载较慢的子应用会报 #31 被丢弃，放宽到 10s 且超时即失败
+  setBootstrapMaxTime(10000, true)
+  setMountMaxTime(10000, true)
   start({
     singular: false,
     sandbox: {
@@ -66,6 +71,10 @@ export function createQiankunAdapter(): RuntimeAdapter {
           sandbox: {
             experimentalStyleIsolation: true,
           },
+        },
+        {
+          // 包裹层此时已渲染、子应用尚未挂载：先写主题，避免子应用先以亮色闪一下
+          beforeMount: async () => applyThemeToSubApps(el),
         },
       )
       handles.set(input.instanceId, microApp)

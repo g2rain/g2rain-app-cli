@@ -26,7 +26,20 @@ export function initThemeController(): ThemeController {
       }
     },
   })
+  controller.subscribe(() => applyThemeToSubApps())
   return controller
+}
+
+/** qiankun 给子应用包裹层加的属性；样式隔离会把子应用 CSS 里的 :root 改写成这个元素 */
+const SUB_APP_WRAPPER = '[data-qiankun]'
+
+/** 把当前主题写到子应用包裹层上，嵌入的子应用随主应用一起切换主题 */
+export function applyThemeToSubApps(root: ParentNode = document): void {
+  if (!controller) return
+  const theme = controller.getTheme()
+  root.querySelectorAll<HTMLElement>(SUB_APP_WRAPPER).forEach((el) => {
+    el.dataset.g2Theme = theme
+  })
 }
 
 export function getThemeController(): ThemeController {

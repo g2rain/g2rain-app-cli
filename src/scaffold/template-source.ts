@@ -1,13 +1,11 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import fs from 'fs-extra';
+import { readCliVersion } from '../shared/version.js';
 import {
   TEMPLATE_REPOSITORY,
   type GenerationIdentity,
   type TemplateVars,
 } from './types.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface EmbeddedTemplateMeta {
   schemaVersion?: number;
@@ -99,7 +97,7 @@ export async function resolveGenerationIdentity(
   vars: TemplateVars,
   defaultRepository: string = TEMPLATE_REPOSITORY,
 ): Promise<GenerationIdentity> {
-  const cliPackage = await fs.readJson(path.resolve(__dirname, '..', '..', 'package.json'));
+  const cliVersion = await readCliVersion();
   const embedded = await readEmbeddedMeta(templateRoot);
   if (embedded) {
     const sourceRepository = normalizeGitRepository(
@@ -121,7 +119,7 @@ export async function resolveGenerationIdentity(
 
     return {
       ...vars,
-      cliVersion: String(cliPackage.version),
+      cliVersion,
       templateRepository: sourceRepository,
       templateRef,
       templateTag,
@@ -132,7 +130,7 @@ export async function resolveGenerationIdentity(
   const git = await readGitMetadata(templateRoot);
   return {
     ...vars,
-    cliVersion: String(cliPackage.version),
+    cliVersion,
     templateRepository: normalizeGitRepository(git.repository, defaultRepository),
     templateRef: git.ref || 'local',
     templateCommit: isFullCommit(git.ref) ? git.ref.toLowerCase() : undefined,

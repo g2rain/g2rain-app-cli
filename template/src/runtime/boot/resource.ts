@@ -8,8 +8,7 @@ import { normalizeResourceApiEndpoint } from './types';
 import { getHttpClient } from '@runtime/http';
 
 import { env } from '@shared/env';
-import { ApiPermission, PageElementPermission, type ApiPermissionProvider, type PageElementPermissionProvider } from '@/components/permission';
-import type { PageElementStatus } from '@/components/permission';
+import type { PageElementStatus, PermissionProvider } from '@g2rain/platform/permission';
 
 /**
  * 资源接口路径
@@ -158,18 +157,13 @@ class ResourceManager {
 // 导出单例实例
 export const resourceManager = new ResourceManager();
 
-// 将 ResourceManager 作为 permission 数据提供者注册（platform -> components 合法依赖）
-const pageElementProvider: PageElementPermissionProvider = {
+/** 把 ResourceManager 适配为权限 provider，由 main.ts 安装到 createPermissionPlugin */
+export const permissionProvider: PermissionProvider = {
   hasPageElementPermission: (elementCode: string) =>
     resourceManager.hasPageElementPermission(elementCode),
   getPageElementStatus: (elementCode: string) =>
     resourceManager.getPageElementStatus(elementCode),
-};
-PageElementPermission.registerProvider(pageElementProvider);
-
-const apiProvider: ApiPermissionProvider = {
   hasApiPermission: (apiUrl: string, requestMethod: string) =>
     resourceManager.hasApiPermission(apiUrl, requestMethod),
 };
-ApiPermission.registerProvider(apiProvider);
 

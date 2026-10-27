@@ -1,6 +1,7 @@
 import type { WorkspaceTab } from '../types/workspace'
 import { useRuntimeStore } from '../stores/runtime.store'
-import { getContextPath } from '../../shared/env'
+import { SHELL_PAGE_PATHS } from '../menus/shell-menus'
+import { getPathWithContextPath } from '../../shared/env'
 import { replaceBrowserPathname, wrapActiveRule } from '../../shared/url'
 
 /**
@@ -11,8 +12,8 @@ export function syncBrowserAddressForTab(tab: WorkspaceTab | undefined | null): 
   if (!tab) return
 
   if (tab.kind === 'shell') {
-    const base = getContextPath().replace(/\/$/, '') || ''
-    replaceBrowserPathname(base ? `${base}/` : '/')
+    const path = tab.shellPage ? SHELL_PAGE_PATHS[tab.shellPage] : '/'
+    replaceBrowserPathname(getPathWithContextPath(path))
     return
   }
 

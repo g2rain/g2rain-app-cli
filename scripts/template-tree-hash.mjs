@@ -4,10 +4,10 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { includeInTreeHash } from './lib/template-sync-filter.mjs';
+import { includeInTreeHash, toSourcePath } from './lib/template-sync-filter.mjs';
 
 /**
- * Recursively list files under root as POSIX relative paths (sorted).
+ * Recursively list files under root as POSIX relative paths.
  * Symlinks cause failure.
  * @param {string} root
  * @returns {Promise<string[]>}
@@ -53,7 +53,6 @@ async function listFiles(root) {
   }
 
   await walk(root, '');
-  files.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
   return files;
 }
 
@@ -85,12 +84,15 @@ export async function hashTemplateTree(templateDir) {
     throw new Error(`Not a directory: ${root}`);
   }
 
-  const files = await listFiles(root);
+  // 按源仓路径（_gitignore → .gitignore 等）排序与写入，快照与源仓哈希一致
+  const files = (await listFiles(root))
+    .map((rel) => ({ rel, source: toSourcePath(rel) }))
+    .sort((a, b) => (a.source < b.source ? -1 : a.source > b.source ? 1 : 0));
   const hash = createHash('sha256');
   const nul = Buffer.from([0]);
 
-  for (const rel of files) {
-    hash.update(Buffer.from(rel, 'utf-8'));
+  for (const { rel, source } of files) {
+    hash.update(Buffer.from(source, 'utf-8'));
     hash.update(nul);
     const content = await fsp.readFile(path.join(root, ...rel.split('/')));
     hash.update(canonicalizeContent(content));

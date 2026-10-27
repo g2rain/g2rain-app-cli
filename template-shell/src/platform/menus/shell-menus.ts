@@ -63,6 +63,23 @@ export const SHELL_MENUS: ShellMenuNode[] = [
   },
 ]
 
+type ShellPage = NonNullable<WorkspaceView['shellPage']>
+
+/** Shell 页面在壳 Context Path 下的地址，用于地址栏同步与刷新恢复 */
+export const SHELL_PAGE_PATHS: Record<ShellPage, string> = {
+  overview: '/',
+  passport: '/passport',
+  'tenant-provision': '/tenant-provision',
+}
+
+/** 按壳内路由（已去掉 Context Path）查找 Shell 页面视图 */
+export function findShellView(routePath: string): WorkspaceView | undefined {
+  const views = SHELL_MENUS.flatMap((node) =>
+    isShellMenuGroup(node) ? node.children.map((item) => item.view) : [node.view],
+  )
+  return views.find((view) => view.shellPage && SHELL_PAGE_PATHS[view.shellPage] === routePath)
+}
+
 function shellItemAsMenuItem(item: ShellMenuItem): MenuItem {
   return {
     key: `shell.${item.key}`,

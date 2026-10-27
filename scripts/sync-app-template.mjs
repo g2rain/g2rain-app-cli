@@ -2,7 +2,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fse from 'fs-extra';
-import { shouldCopyApp } from './lib/template-sync-filter.mjs';
+import { shouldCopyApp, storeDotfiles } from './lib/template-sync-filter.mjs';
 import {
   APP_TEMPLATE_REPOSITORY,
   assertLocalSyncAllowed,
@@ -45,6 +45,7 @@ async function main() {
   await fse.copy(sourceRoot, targetRoot, {
     filter: (src) => shouldCopyApp(src, sourceRoot),
   });
+  await storeDotfiles(targetRoot);
 
   const meta = await writeSnapshotMarkers({
     targetRoot,

@@ -12,20 +12,19 @@
       </section>
     </template>
 
-    <OverviewPage v-if="shellPage === 'overview'" />
-    <PassportPage v-else-if="shellPage === 'passport'" />
-    <TenantProvisionPage v-else-if="shellPage === 'tenant-provision'" />
-    <section
-      v-else-if="activeTab?.kind === 'shell' && !shellPage"
-      class="shell-page empty"
-    >
-      <p>当前 Tab 没有可渲染的 Shell 页面。</p>
-    </section>
+    <template v-if="activeTab?.kind === 'shell'">
+      <keep-alive>
+        <component :is="shellPageComponent" v-if="shellPageComponent" :key="shellPage" />
+      </keep-alive>
+      <section v-if="!shellPage" class="shell-page empty">
+        <p>当前 Tab 没有可渲染的 Shell 页面。</p>
+      </section>
+    </template>
   </main>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, reactive, watch } from 'vue'
+import { computed, nextTick, reactive, watch, type Component } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { useWorkspaceStore } from '../../platform/stores/workspace.store'
@@ -46,6 +45,16 @@ const mountErrors = reactive<Record<string, string | null>>({})
 
 const shellPage = computed(() =>
   activeTab.value?.kind === 'shell' ? activeTab.value.shellPage : undefined,
+)
+
+const shellPageComponents: Record<string, Component> = {
+  overview: OverviewPage,
+  passport: PassportPage,
+  'tenant-provision': TenantProvisionPage,
+}
+
+const shellPageComponent = computed(() =>
+  shellPage.value ? shellPageComponents[shellPage.value] : undefined,
 )
 
 function isTabLoading(tab: WorkspaceTab): boolean {
@@ -70,10 +79,19 @@ function clearTabMountState(tabId: string): void {
   delete mountErrors[tabId]
 }
 
+/** 进行中的首次挂载（按 instanceId）：切回仍在加载的 Tab 时等待它，不重复挂载 */
+const mountTasks = new Map<string, Promise<void>>()
+
 watch(
   activeTab,
   async (tab) => {
     if (tab?.kind !== 'micro-app' || !tab.instanceId || !tab.applicationCode) {
+      return
+    }
+
+    const pending = mountTasks.get(tab.instanceId)
+    if (pending) {
+      await pending
       return
     }
 
@@ -91,6 +109,8 @@ watch(
 
     const tabId = tab.tabId
     const instanceId = tab.instanceId
+    let settle!: () => void
+    mountTasks.set(instanceId, new Promise<void>((resolve) => (settle = resolve)))
     mountingByTab[tabId] = true
     mountErrors[tabId] = null
     try {
@@ -126,6 +146,8 @@ watch(
       await workspace.discardFailedMicroAppTab(tabId)
     } finally {
       mountingByTab[tabId] = false
+      mountTasks.delete(instanceId)
+      settle()
     }
   },
   { immediate: true },

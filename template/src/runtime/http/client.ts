@@ -94,6 +94,7 @@ async function tryMockResponse<T>(config: AxiosRequestConfig): Promise<T | undef
 function wrapClientWithMockShortCircuit<Direct extends boolean>(
   client: {
     request<T = unknown, Body = unknown>(config: AxiosRequestConfig<Body>): Promise<HttpResponse<T, Direct>>;
+    sse: HttpClient<Direct>['sse'];
   },
   isDirectResponse: Direct,
 ): HttpClient<Direct> {
@@ -117,6 +118,8 @@ function wrapClientWithMockShortCircuit<Direct extends boolean>(
     post: (url, data, config) => request({ ...config, url, method: 'POST', data }),
     put: (url, data, config) => request({ ...config, url, method: 'PUT', data }),
     patch: (url, data, config) => request({ ...config, url, method: 'PATCH', data }),
+    // Mock 不拦截 SSE，直接透传包内核
+    sse: client.sse,
   };
 }
 

@@ -38,11 +38,24 @@
 
 禁止：`main` / `master` / 分支名 / 缩短 SHA / 本地路径。
 
+## Dotfile 存储名
+
+`npm pack` 总会丢弃任意目录下的 `.gitignore` 与 `.npmrc`。快照内改存为：
+
+| 源仓文件 | 快照存储名 |
+| --- | --- |
+| `.gitignore` | `_gitignore` |
+| `.npmrc` | `_npmrc` |
+
+- sync 复制后改名（[`scripts/lib/template-sync-filter.mjs`](../scripts/lib/template-sync-filter.mjs) `storeDotfiles`）；源仓若已存在 `_gitignore` / `_npmrc` 则 sync 失败。
+- 脚手架复制后还原为 `.gitignore` / `.npmrc`（`src/scaffold/copy.ts`）；两处映射须一致。
+- 树哈希按源仓路径计算，快照与源仓同一内容哈希相同；rebuild 比对对源仓副本做相同改名后再比较。
+
 ## 树哈希
 
 `scripts/template-tree-hash.mjs`：
 
-1. 递归文件，POSIX 相对路径字典序。
+1. 递归文件，按源仓 POSIX 相对路径（`_gitignore` → `.gitignore` 等）字典序；写入哈希的也是源仓路径。
 2. 排除 meta、snapshot.md、`.git`、`node_modules`、`dist`。
 3. 对每个文件写入：路径 + NUL + 内容 + NUL；有效 UTF-8 文本先将 `CRLF` 规范化为 `LF`，二进制文件保持原始字节。
 4. 遇 symlink 失败。

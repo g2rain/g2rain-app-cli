@@ -8,6 +8,7 @@ import { MicroAppEventType, isTokenResponseMessage } from '@/components/micro-ap
 import type { MicroAppMessageProcessorImpl } from '@/components/micro-app/message-processor';
 import { useAccessTokenStore } from '@platform/stores';
 import { getHttpClient, fetchIamKeyId, fetchIamPublicKey, refreshBarrier, type Client } from '@runtime/http';
+import { hasHostIdentity } from './host-identity';
 
 /**
  * 处理主应用下发的 Token 响应消息
@@ -21,6 +22,11 @@ export class TokenResponseDataHandler implements MicroAppMessageHandler {
     }
 
     const typedMessage = messageUnion as TokenResponseMessage;
+    // 带 requestId 的是 REQUEST_TOKEN 的回复，由 shared-auth-bridge 处理；这里只处理 TOKEN_INVALID 触发的刷新结果
+    if (typedMessage.requestId) return;
+    const target = typedMessage.instanceId || typedMessage.appKey || '';
+    if (!hasHostIdentity(target)) return;
+
     const { token, tokenKid, client } = typedMessage.data;
 
     if (!token || !tokenKid) {

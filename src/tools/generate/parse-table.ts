@@ -5,6 +5,7 @@ export function parseTable(sql: string, tableName: string): TableInfo {
 
   const columns: TableColumn[] = [];
   let inColumns = false;
+  let found = false;
   let tableComment = '';
   const normalized = tableName.toLowerCase();
 
@@ -12,6 +13,7 @@ export function parseTable(sql: string, tableName: string): TableInfo {
     const createMatch = line.match(/^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?(\w+)`?/i);
     if (createMatch && createMatch[1]?.toLowerCase() === normalized) {
       inColumns = true;
+      found = true;
       continue;
     }
 
@@ -72,6 +74,10 @@ export function parseTable(sql: string, tableName: string): TableInfo {
         isDeleteFlag,
       });
     }
+  }
+
+  if (!found) {
+    throw new Error(`SQL 中未找到表: ${tableName}`);
   }
 
   const baseColumns = columns.filter((c) => c.isBaseField);

@@ -15,6 +15,7 @@ import {
   shouldCopyApp,
   shouldCopyOverlay,
   shouldCopyShell,
+  storeDotfiles,
 } from './lib/template-sync-filter.mjs';
 import {
   APP_TEMPLATE_REPOSITORY,
@@ -117,6 +118,8 @@ async function diffFilteredTrees(label, sourceRoot, snapshotRoot, filter) {
     await fse.copy(sourceRoot, tmp, {
       filter: (src) => filter(src, sourceRoot),
     });
+    // 与 sync 相同：.gitignore / .npmrc 改存为 _gitignore / _npmrc
+    await storeDotfiles(tmp);
 
     const sourceFiles = await listContentFiles(tmp);
     const snapFiles = await listContentFiles(snapshotRoot);

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import { GENERATED_REPOSITORY_BASE } from '../../scaffold/types.js';
+import { readCliVersion } from '../../shared/version.js';
 
 export async function rewriteFrontendAppPackageJson(
   targetDir: string,
@@ -20,6 +21,10 @@ export async function rewriteFrontendAppPackageJson(
   if (Array.isArray(pkg.keywords)) {
     pkg.keywords = pkg.keywords.filter((keyword: unknown) => keyword !== 'template');
   }
+  // 模板仓本地联调用 file:../g2rain-app-cli，生成项目改为当前 CLI 的 registry 版本
+  if (pkg.devDependencies?.['create-g2rain-app']) {
+    pkg.devDependencies['create-g2rain-app'] = `^${await readCliVersion()}`;
+  }
   await fs.writeJson(pkgPath, pkg, { spaces: 2 });
 }
 
@@ -35,6 +40,7 @@ export async function replaceFrontendAppPlaceholders(
     '.env.production',
     'vite.config.ts',
     'src/runtime/env/index.ts',
+    'docs/operations/configuration.md',
   ];
 
   const replacements: Record<string, string> = {

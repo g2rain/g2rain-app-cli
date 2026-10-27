@@ -29,10 +29,10 @@ let tokenExpiredWatcherRefCount = 0;
  * - 集成模式：通知主应用刷新由 {@link sso.ensureAccessToken} 统一 emit，此处不重复发事件
  * - 独立运行模式：tokenExpired 变为 true 时调用 requestRefreshToken
  *
- * qiankun 多实例：每次 render/mount 调用一次；watch 与 initHttp 仅首次生效，避免重复监听。
- * 与 {@link teardownTokenExpiredWatcher} 成对（在 qiankun unmount 中调用）。
+ * qiankun 多实例：每次 createApplication 调用一次；watch 与 initHttp 仅首次生效，避免重复监听。
+ * 返回释放函数；同一次返回的释放函数重复调用只生效一次（挂在应用 unmount 上）。
  */
-export function setupTokenExpiredWatcher(): void {
+export function setupTokenExpiredWatcher(): () => void {
   if (!httpBootstrapDone) {
     initHttp();
     httpBootstrapDone = true;
@@ -40,68 +40,65 @@ export function setupTokenExpiredWatcher(): void {
 
   tokenExpiredWatcherRefCount++;
 
-  if (tokenExpiredWatchStop != null) {
-    return;
-  }
+  if (tokenExpiredWatchStop == null) {
+    const accessTokenStore = useAccessTokenStore();
 
-  const accessTokenStore = useAccessTokenStore();
-
-  // 启动时如果已经是 tokenExpired = true，则立即按当前模式处理一次
-  if (accessTokenStore.tokenExpired) {
-    if (isQiankunRuntime()) {
-      if ((import.meta.env as any).DEV) {
-        console.log('[boot] 启动时检测到 tokenExpired=true，集成模式走 ensureAccessToken');
+    // 启动时如果已经是 tokenExpired = true，则立即按当前模式处理一次
+    if (accessTokenStore.tokenExpired) {
+      if (isQiankunRuntime()) {
+        if ((import.meta.env as any).DEV) {
+          console.log('[boot] 启动时检测到 tokenExpired=true，集成模式走 ensureAccessToken');
+        }
+        void sso.ensureAccessToken({ force: true }).catch((error) => {
+          console.error('[boot] 启动时 ensureAccessToken 失败:', error);
+        });
+      } else {
+        if ((import.meta.env as any).DEV) {
+          console.log('[boot] 启动时检测到 tokenExpired=true，独立模式调用 requestRefreshToken 刷新 token');
+        }
+        void sso.requestRefreshToken().catch((error) => {
+          console.error('[boot] 启动时刷新 token 失败:', error);
+        });
       }
-      void sso.ensureAccessToken({ force: true }).catch((error) => {
-        console.error('[boot] 启动时 ensureAccessToken 失败:', error);
-      });
-    } else {
-      if ((import.meta.env as any).DEV) {
-        console.log('[boot] 启动时检测到 tokenExpired=true，独立模式调用 requestRefreshToken 刷新 token');
-      }
-      void sso.requestRefreshToken().catch((error) => {
-        console.error('[boot] 启动时刷新 token 失败:', error);
-      });
     }
+
+    tokenExpiredWatchStop = watch(
+      () => accessTokenStore.tokenExpired,
+      async (tokenExpired, prevTokenExpired) => {
+        if (tokenExpired === prevTokenExpired) return;
+        // 集成模式由 ensureAccessToken 统一发事件，watch 不介入
+        if (isQiankunRuntime()) return;
+        // 仅处理 false -> true（标记为过期）
+        if (prevTokenExpired || !tokenExpired) return;
+
+        if ((import.meta.env as any).DEV) {
+          console.log('[boot] tokenExpired 变为 true，独立模式调用 requestRefreshToken 刷新 token');
+        }
+
+        try {
+          await sso.requestRefreshToken();
+        } catch (error) {
+          console.error('[boot] 刷新 token 失败:', error);
+        }
+      },
+      { immediate: false },
+    );
   }
 
-  tokenExpiredWatchStop = watch(
-    () => accessTokenStore.tokenExpired,
-    async (tokenExpired, prevTokenExpired) => {
-      if (tokenExpired === prevTokenExpired) return;
-      // 集成模式由 ensureAccessToken 统一发事件，watch 不介入
-      if (isQiankunRuntime()) return;
-      // 仅处理 false -> true（标记为过期）
-      if (prevTokenExpired || !tokenExpired) return;
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    tokenExpiredWatcherRefCount = Math.max(0, tokenExpiredWatcherRefCount - 1);
+    if (tokenExpiredWatcherRefCount > 0) {
+      return;
+    }
 
-      if ((import.meta.env as any).DEV) {
-        console.log('[boot] tokenExpired 变为 true，独立模式调用 requestRefreshToken 刷新 token');
-      }
+    console.log('[boot] 最后一个实例卸载，停止 tokenExpired 监听');
 
-      try {
-        await sso.requestRefreshToken();
-      } catch (error) {
-        console.error('[boot] 刷新 token 失败:', error);
-      }
-    },
-    { immediate: false },
-  );
-}
-
-/**
- * 与 setupTokenExpiredWatcher 成对：最后一个 qiankun 实例卸载时停止 watch。
- * 独立运行模式无需调用（页面级生命周期）。
- */
-export function teardownTokenExpiredWatcher(): void {
-  tokenExpiredWatcherRefCount = Math.max(0, tokenExpiredWatcherRefCount - 1);
-  if (tokenExpiredWatcherRefCount > 0) {
-    return;
-  }
-
-  console.log('[boot] 最后一个实例卸载，停止 tokenExpired 监听');
-
-  tokenExpiredWatchStop?.();
-  tokenExpiredWatchStop = null;
+    tokenExpiredWatchStop?.();
+    tokenExpiredWatchStop = null;
+  };
 }
 
 export function isSsoCallbackPath(): boolean {

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -16,6 +17,10 @@ const { scaffoldProject } = await import(pathToFileURL(cliEntry).href);
 const { runCreate, runHelp } = await import(
   pathToFileURL(path.join(repoRoot, 'dist', 'commands', 'create.js')).href
 );
+const { normalizeContextPath, validateProjectName } = await import(
+  pathToFileURL(path.join(repoRoot, 'dist', 'cli', 'validate.js')).href
+);
+const cliVersion = JSON.parse(await readFile(path.join(repoRoot, 'package.json'), 'utf8')).version;
 const { resolveTemplateRoot } = await import(
   pathToFileURL(path.join(repoRoot, 'dist', 'scaffold', 'resolve-template-root.js')).href
 );
@@ -80,6 +85,20 @@ test('shell --with-legacy parses; app rejects --with-legacy', () => {
     () => parseCreateArgs(['demo-app', '--with-legacy'], 'app'),
     /only valid for shell/,
   );
+});
+
+test('app rejects --port', () => {
+  assert.throws(
+    () => parseCreateArgs(['demo', '--port', '3005'], 'app'),
+    /--port is only valid for shell/,
+  );
+  const result = spawnSync(process.execPath, [cliEntry, 'app', 'demo-port-reject', '--port', '3005'], {
+    cwd: os.tmpdir(),
+    encoding: 'utf8',
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /--port is only valid for shell/);
+  assert.equal(fs.existsSync(path.join(os.tmpdir(), 'demo-port-reject')), false);
 });
 
 test('legacy create defaults to frontend-app', () => {
@@ -169,6 +188,8 @@ test('scaffold shell from bundled template-shell', async (t) => {
     false,
   );
   assert.equal(await fs.pathExists(path.join(generated, 'legacy-overlay')), false);
+  assert.ok(await fs.pathExists(path.join(generated, '.gitignore')));
+  assert.equal(await fs.pathExists(path.join(generated, '_gitignore')), false);
 
   const menu = await readFile(
     path.join(generated, 'src', 'platform', 'menus', 'shell-menus.ts'),
@@ -250,9 +271,116 @@ test('scaffold app still uses app template family', async (t) => {
   assert.match(project, /^family: frontend-app$/m);
   assert.match(project, /g2rain-app-template/);
   assert.doesNotMatch(project, /frontend-shell/);
+
+  for (const name of ['.gitignore', '.npmrc']) {
+    assert.ok(await fs.pathExists(path.join(generated, name)), `missing ${name}`);
+  }
+  for (const name of ['_gitignore', '_npmrc']) {
+    assert.equal(await fs.pathExists(path.join(generated, name)), false, `leaked ${name}`);
+  }
+  const dockerfile = await readFile(path.join(generated, 'Dockerfile'), 'utf8');
+  assert.match(dockerfile, /\.npmrc/);
+
+  const pkg = JSON.parse(await readFile(path.join(generated, 'package.json'), 'utf8'));
+  assert.equal(pkg.devDependencies['create-g2rain-app'], `^${cliVersion}`);
   assert.equal(await fs.pathExists(path.join(generated, '.g2rain-template-meta.json')), false);
   assert.equal(
     await fs.pathExists(path.join(generated, '.g2rain-template-snapshot.md')),
     false,
   );
+});
+
+test('scaffold cleans up the target dir when a later step fails', async (t) => {
+  const sandbox = await mkdtemp(path.join(os.tmpdir(), 'g2rain-cli-cleanup-'));
+  t.after(() => rm(sandbox, { recursive: true, force: true }));
+  const template = path.join(sandbox, 'template');
+  await fs.copy(path.join(repoRoot, 'template'), template);
+  // 删掉 verify 依赖的文件，使 rewrite 后的校验失败
+  await fs.remove(path.join(template, 'package.json'));
+  const target = path.join(sandbox, 'broken-app');
+  await assert.rejects(
+    () =>
+      scaffoldProject(template, target, {
+        projectName: 'broken-app',
+        contextPath: 'broken',
+        family: 'frontend-app',
+      }),
+  );
+  assert.equal(await fs.pathExists(target), false);
+  // 再次运行不会被「目录已存在」挡住
+  await assert.rejects(
+    () =>
+      scaffoldProject(template, target, {
+        projectName: 'broken-app',
+        contextPath: 'broken',
+        family: 'frontend-app',
+      }),
+  );
+  assert.equal(await fs.pathExists(target), false);
+});
+
+test('non-TTY create uses derived context path for app', async (t) => {
+  const sandbox = await mkdtemp(path.join(os.tmpdir(), 'g2rain-cli-nontty-'));
+  t.after(() => rm(sandbox, { recursive: true, force: true }));
+  const result = spawnSync(
+    process.execPath,
+    [cliEntry, 'app', 'g2rain-demo-app'],
+    {
+      cwd: sandbox,
+      encoding: 'utf8',
+      env: { ...process.env, G2RAIN_TEMPLATE_PATH: path.join(repoRoot, 'template') },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  const project = await readFile(
+    path.join(sandbox, 'g2rain-demo-app', 'docs', 'project.yaml'),
+    'utf8',
+  );
+  assert.match(project, /contextPath: "demo"/);
+  const env = await readFile(path.join(sandbox, 'g2rain-demo-app', '.env'), 'utf8');
+  assert.match(env, /VITE_CONTEXT_PATH=\/demo/);
+});
+
+test('project name validation', () => {
+  for (const name of ['demo', 'g2rain-order-app', '0app', 'a-b-1']) {
+    assert.equal(validateProjectName(name), name);
+  }
+  for (const name of ['../x', '/abs', 'a b', '$(cmd)', '.', '..', 'Demo', '-x', 'a/b', 'a_b', '']) {
+    assert.throws(() => validateProjectName(name), /Invalid project name/, name);
+  }
+});
+
+test('context path validation normalizes slashes and checks segments', () => {
+  assert.equal(normalizeContextPath('/order/'), 'order');
+  assert.equal(normalizeContextPath(' admin/order_v2 '), 'admin/order_v2');
+  assert.throws(() => normalizeContextPath('/'), /cannot be empty/);
+  for (const value of ['a b', '../x', 'a//b', 'a/./b', '$(cmd)', 'Order', 'a?b', 'a\\b', '_a']) {
+    assert.throws(() => normalizeContextPath(value), /Invalid context path/, value);
+  }
+});
+
+test('create rejects invalid name / context path and writes nothing', async (t) => {
+  const sandbox = await mkdtemp(path.join(os.tmpdir(), 'g2rain-cli-invalid-'));
+  t.after(() => rm(sandbox, { recursive: true, force: true }));
+  const cwd = path.join(sandbox, 'cwd');
+  await fs.ensureDir(cwd);
+
+  const cases = [
+    ['app', '../escape', '--context-path', 'x'],
+    ['app', '/abs-app', '--context-path', 'x'],
+    ['app', 'a b', '--context-path', 'x'],
+    ['shell', '$(touch pwned)'],
+    ['--family', 'frontend-app', '--name', 'Bad.Name'],
+    ['app', 'ok-app', '--context-path', '$(id)'],
+    ['shell', 'ok-shell', '--context-path', '../admin'],
+  ];
+  for (const args of cases) {
+    const result = spawnSync(process.execPath, [cliEntry, ...args], { cwd, encoding: 'utf8' });
+    assert.equal(result.status, 1, `${args.join(' ')} should exit 1`);
+    assert.match(result.stderr, /Invalid (project name|context path)/, args.join(' '));
+    assert.doesNotMatch(result.stdout, /Project created/);
+  }
+  assert.deepEqual(await readdir(cwd), []);
+  assert.deepEqual((await readdir(sandbox)).sort(), ['cwd']);
 });

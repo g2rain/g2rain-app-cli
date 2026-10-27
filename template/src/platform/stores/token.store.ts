@@ -112,11 +112,10 @@ export const useAccessTokenStore = defineStore('token', {
     },
   },
   // 持久化：仅独立模式。qiankun 集成模式 Token 经 Auth Bridge 进内存 Store，不持久化壳会话。
-  persist: isQiankunRuntime()
-    ? false
-    : {
-      key: STORAGE_KEY,
-      storage: localStorage,
-      pick: ['client', 'token', 'tokenString', 'logged', 'tokenExpired'],
-    },
+  // 首次 useStore 时求值（qiankun bootstrap 之后），而不是模块求值时
+  get persist() {
+    return isQiankunRuntime()
+      ? false
+      : { key: STORAGE_KEY, storage: localStorage, pick: ['client', 'token', 'tokenString', 'logged', 'tokenExpired'] };
+  },
 });

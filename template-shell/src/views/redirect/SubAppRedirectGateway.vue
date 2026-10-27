@@ -13,7 +13,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { sso } from '../../runtime/auth/sso'
 import { useAccessTokenStore } from '../../platform/stores/token.store'
 import { useMenuStore } from '../../platform/stores/menu.store'
-import { useRuntimeStore } from '../../platform/stores/runtime.store'
 import {
   saveReturnUrl,
   handleRedirectGatewayWhenAuthed,
@@ -22,11 +21,11 @@ import {
 const route = useRoute()
 const router = useRouter()
 const menuStore = useMenuStore()
-const runtimeStore = useRuntimeStore()
 const message = ref('正在跳转...')
 
 function menusReady(): boolean {
-  return menuStore.initialized && runtimeStore.definitions.size > 0
+  // 菜单接口失败时仍会 initialized；不再等子应用定义数量，避免深链卡住
+  return menuStore.initialized
 }
 
 async function tryOpenTarget(): Promise<boolean> {
@@ -58,9 +57,9 @@ onMounted(async () => {
 
   let stop: WatchStopHandle | null = null
   stop = watch(
-    () => [menuStore.initialized, runtimeStore.definitions.size] as const,
-    async ([menuReady, defCount]) => {
-      if (!menuReady || defCount <= 0) {
+    () => menuStore.initialized,
+    async (menuReady) => {
+      if (!menuReady) {
         return
       }
       if (await tryOpenTarget()) {

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { loadTableInfos } from './context.js';
 import { renderTemplate } from './loader.js';
 import { updateRouteMap } from './route.js';
-import type { GenerateOptions, GeneratePaths } from './types.js';
+import type { GenerateOptions, GeneratePaths, TableInfo } from './types.js';
 
 export async function generateCode(
   tables: string[],
@@ -12,14 +12,16 @@ export async function generateCode(
 ): Promise<void> {
   const { view = true, api = true, mock = true, route = true } = options;
 
-  if (view) await generateView(tables, paths);
-  if (api) await generateApi(tables, paths);
-  if (mock) await generateMock(tables, paths);
-  if (route) await generateRoute(tables, paths);
+  // 写任何文件前先校验表名并解析全部表，缺表直接失败
+  const infos = loadTableInfos(tables, paths);
+
+  if (view) generateView(infos, paths);
+  if (api) generateApi(infos, paths);
+  if (mock) generateMock(infos, paths);
+  if (route) generateRoute(infos, paths);
 }
 
-async function generateView(tables: string[], paths: GeneratePaths): Promise<void> {
-  const infos = loadTableInfos(tables, paths);
+function generateView(infos: TableInfo[], paths: GeneratePaths): void {
   for (const info of infos) {
     const dir = path.join(paths.viewsDir, info.name);
     fs.mkdirSync(dir, { recursive: true });
@@ -32,8 +34,7 @@ async function generateView(tables: string[], paths: GeneratePaths): Promise<voi
   }
 }
 
-async function generateApi(tables: string[], paths: GeneratePaths): Promise<void> {
-  const infos = loadTableInfos(tables, paths);
+function generateApi(infos: TableInfo[], paths: GeneratePaths): void {
   for (const info of infos) {
     const dir = path.join(paths.viewsDir, info.name);
     fs.mkdirSync(dir, { recursive: true });
@@ -49,8 +50,7 @@ async function generateApi(tables: string[], paths: GeneratePaths): Promise<void
   }
 }
 
-async function generateMock(tables: string[], paths: GeneratePaths): Promise<void> {
-  const infos = loadTableInfos(tables, paths);
+function generateMock(infos: TableInfo[], paths: GeneratePaths): void {
   for (const info of infos) {
     const dir = path.join(paths.viewsDir, info.name);
     fs.mkdirSync(dir, { recursive: true });
@@ -62,8 +62,7 @@ async function generateMock(tables: string[], paths: GeneratePaths): Promise<voi
   }
 }
 
-async function generateRoute(tables: string[], paths: GeneratePaths): Promise<void> {
-  const infos = loadTableInfos(tables, paths);
+function generateRoute(infos: TableInfo[], paths: GeneratePaths): void {
   updateRouteMap(infos, paths.routeMapPath);
   console.log('✓ route-map.ts 已更新');
 }

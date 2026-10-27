@@ -19,6 +19,7 @@ import { useSessionStore } from '../platform/stores/session.store'
 import { awaitRuntimeEnvConfig } from '../shared/env'
 import { createShellRouter } from './router'
 import { initHttpClient } from './http'
+import { silenceNotified } from './http/notified'
 import { sso } from './auth/sso'
 import { startMenuBoot, setMenuBootRouter } from './boot/menu.boot'
 import { ensureQiankunStarted } from '../platform/apps/qiankun-adapter'
@@ -38,6 +39,7 @@ export async function boot(): Promise<App> {
   rewriteMicroDeepLinkToGateway()
 
   const app = createApp(AppRoot)
+  silenceNotified(app)
   const pinia = createPinia()
   app.use(pinia)
 

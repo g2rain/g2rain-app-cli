@@ -1,13 +1,11 @@
 #!/usr/bin/env node
-import fs from 'fs-extra';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import kleur from 'kleur';
 import { parseTopLevel } from './cli/parse.js';
 import { runCreate, runHelp } from './commands/create.js';
 import { runGenerate } from './commands/generate.js';
 import { runBuildConfig } from './commands/build-config.js';
 import { isDirectExecution } from './shared/execution.js';
+import { readCliVersion } from './shared/version.js';
 
 export { scaffoldProject } from './scaffold/project.js';
 export { resolveTemplateRoot, resolveBundledTemplateRoot } from './scaffold/resolve-template-root.js';
@@ -15,9 +13,7 @@ export { isDirectExecution } from './shared/execution.js';
 export { getFamily, listFamilies, printRootHelp } from './families/registry.js';
 
 async function printVersion(): Promise<void> {
-  const pkgPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
-  const pkg = await fs.readJson(pkgPath);
-  console.log(String(pkg.version));
+  console.log(await readCliVersion());
 }
 
 async function main(): Promise<void> {

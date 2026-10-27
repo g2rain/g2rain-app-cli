@@ -2,13 +2,15 @@
 
 ## DEV-001：项目名缺少路径和 npm 名称校验
 
-当前 `projectName` 直接参与 `path.resolve(cwd, projectName)` 和 `package.json.name`。未限制绝对路径、`..`、路径分隔符、保留名、空白和 npm 包名字符，可能生成到预期父目录之外或产生不可发布包名。
+状态：已于 2026-10-27 关闭。
 
-应分别定义目录名和 npm package name 规则，解析后验证目标路径仍是预期父目录的直接子目录。
+交互与非交互 create 共用 `src/cli/validate.ts`：项目名须匹配 `^[a-z0-9][a-z0-9-]*$`（同时满足目录名、npm 包名与占位符替换安全），否则退出 1；绝对路径、`..`、路径分隔符、空白和 shell 元字符均被拒绝。
 
 ## DEV-002：Context Path 校验过弱
 
-当前只去除首尾 `/` 并拒绝空值，仍可能接受空格、反斜杠、`.`、`..`、查询/片段字符或多段异常路径。应定义允许字符、分段和标准化规则，并让交互/参数模式复用同一校验。
+状态：已于 2026-10-27 关闭。
+
+Context Path 去掉首尾 `/` 后按 `/` 分段，每段须匹配 `^[a-z0-9][a-z0-9_-]*$`，否则退出 1；交互/参数模式复用同一校验。
 
 ## DEV-003：模板 clone 使用 shell 字符串
 
@@ -38,7 +40,7 @@ create 默认使用包内 `template/` 快照，不再 Git clone；此前 `execFi
 
 状态：进一步缓解（2026-10-01）。
 
-已有脚手架身份集成测试、dispatch / generate / build-config fixture 测试，以及模板解析测试。新增 snapshot hash/verify 与 sync/publish GitHub Actions（OIDC Trusted Publishing + `npm-production` 审批）。参数路径逃逸与失败恢复仍不完整。
+已有脚手架身份集成测试、dispatch / generate / build-config fixture 测试，以及模板解析测试。新增 snapshot hash/verify 与 sync/publish GitHub Actions（OIDC Trusted Publishing + `npm-production` 审批）。项目名、Context Path 与 generate 表名校验已有测试（2026-10-27）；失败恢复仍不完整。
 
 ## DEV-008：生成项目仍保留模板文档身份
 
@@ -48,6 +50,6 @@ CLI 现在按明确清单将 `package.json`、`README.md`、`AGENTS.md`、`docs/
 
 ## DEV-009：模板快照仍将 `create-g2rain-app` 钉为 `file:../g2rain-app-cli`
 
-状态：开放（2026-10-01）。
+状态：已于 2026-10-27 关闭。
 
-包内 `template/package.json` 与部分模板文档仍按模板仓本地联调约定使用 `file:../g2rain-app-cli`。用已发布 CLI 脚手架出的正式业务 App 应改为 npm 版本（如 `1.0.0`）。根治需在 `g2rain-app-template` 改为 registry 依赖后打 tag，再经 `sync-templates` 刷新快照；勿手改 CLI 仓 `template*`（会破坏 `contentSha256`）。用户侧说明见 [usage.md](../development/usage.md)。
+模板仓为本地联调保留 `file:../g2rain-app-cli`，CLI 快照照原样同步（不手改 `template*`）。生成 frontend-app 时 `rewriteFrontendAppPackageJson` 把 devDependency `create-g2rain-app` 改写为 `^<当前 CLI 版本>`，生成项目可直接在 monorepo 外 `npm install`。Shell 模板不依赖 `create-g2rain-app`，无需改写。

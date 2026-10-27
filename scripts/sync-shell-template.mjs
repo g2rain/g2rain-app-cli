@@ -5,6 +5,7 @@ import fse from 'fs-extra';
 import {
   shouldCopyOverlay,
   shouldCopyShell,
+  storeDotfiles,
 } from './lib/template-sync-filter.mjs';
 import {
   assertLocalSyncAllowed,
@@ -59,6 +60,7 @@ async function main() {
   await fse.copy(sourceRoot, targetRoot, {
     filter: (src) => shouldCopyShell(src, sourceRoot),
   });
+  await storeDotfiles(targetRoot);
 
   if (await fse.pathExists(path.join(targetRoot, 'legacy-overlay'))) {
     console.error('✖ template-shell must not contain legacy-overlay/ after sync');
@@ -85,6 +87,7 @@ async function main() {
   await fse.copy(overlaySource, overlayTarget, {
     filter: (src) => shouldCopyOverlay(src, overlaySource),
   });
+  await storeDotfiles(overlayTarget);
 
   const legacyMeta = await writeSnapshotMarkers({
     targetRoot: overlayTarget,

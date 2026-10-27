@@ -3,28 +3,24 @@ import fs from 'fs-extra';
 import kleur from 'kleur';
 import prompts from 'prompts';
 import { parseCreateArgs } from '../cli/parse.js';
+import { normalizeContextPath, validateProjectName } from '../cli/validate.js';
 import { getFamily, printRootHelp } from '../families/registry.js';
 import type { FamilyAlias, FamilyId } from '../families/types.js';
 import { scaffoldProject } from '../scaffold/project.js';
 import { resolveTemplateRoot } from '../scaffold/resolve-template-root.js';
 
-function normalizeContextPath(input: string): string {
-  const normalized = input.trim().replace(/^\/+|\/+$/g, '');
-  if (!normalized) {
-    throw new Error('Context path cannot be empty');
-  }
-  return normalized;
-}
-
 async function ensureProjectName(family: FamilyId, initial?: string) {
-  if (initial) return initial;
+  if (initial) return validateProjectName(initial);
   const { name } = await prompts({
     type: 'text',
     name: 'name',
     message: 'Project name',
     initial: family === 'frontend-shell' ? 'g2rain-new-shell' : 'g2rain-new-app',
   });
-  return name;
+  if (!name) {
+    throw new Error('Project name is required');
+  }
+  return validateProjectName(name);
 }
 
 async function ensureContextPath(
@@ -35,25 +31,17 @@ async function ensureContextPath(
   const definition = getFamily(family);
   if (initial) return normalizeContextPath(initial);
 
-  if (family === 'frontend-shell' && definition.defaultContextPath) {
-    // Non-interactive default for shell; still prompt when TTY for consistency with app.
-    const { contextPath } = await prompts({
-      type: 'text',
-      name: 'contextPath',
-      message: 'Context path (URL prefix, without leading slash)',
-      initial: definition.defaultContextPath(projectName),
-    });
-    if (!contextPath) {
-      throw new Error('Context path is required');
-    }
-    return normalizeContextPath(contextPath);
+  const fallback = definition.defaultContextPath(projectName);
+  // 非 TTY（CI/管道）不弹提示，直接用家族默认 Context Path
+  if (!process.stdin.isTTY) {
+    return normalizeContextPath(fallback);
   }
 
   const { contextPath } = await prompts({
     type: 'text',
     name: 'contextPath',
     message: 'Context path (URL prefix, without leading slash)',
-    initial: definition.defaultContextPath(projectName),
+    initial: fallback,
   });
 
   if (!contextPath) {
@@ -92,16 +80,12 @@ export async function runCreate(
     );
   }
 
-  let projectName: string | undefined;
+  let projectName: string;
   let contextPath: string;
   let port = parsed.port ?? family.defaultPort;
 
   try {
     projectName = await ensureProjectName(familyId, parsed.projectName);
-    if (!projectName) {
-      console.error(kleur.red('✖ Project name is required'));
-      process.exit(1);
-    }
     contextPath = await ensureContextPath(familyId, projectName, parsed.contextPath);
     if (familyId === 'frontend-shell' && port === undefined) {
       port = 3000;
