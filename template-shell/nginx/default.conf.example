@@ -1,5 +1,9 @@
 # Example Nginx config for the Main Shell static build.
-# Replace {{CONTEXT_PATH}} with the path segment without leading slash (e.g. admin).
+# Replace {{CONTEXT_PATH}} with THIS shell's path segment without leading slash (e.g. admin).
+#
+# Critical for F5 on micro-app URLs (/member/..., /manager/...):
+# HTML document MUST fall back to THIS shell's index.html (/{CONTEXT_PATH}/index.html).
+# Do NOT fall back to another shell (e.g. /main/) — that loads the wrong SPA.
 
 server {
     listen       80;
@@ -8,7 +12,7 @@ server {
     root   /usr/share/nginx/html;
     index  index.html;
 
-    # SPA under context path
+    # SPA under this shell's context path
     location /{{CONTEXT_PATH}}/ {
         try_files $uri $uri/ /{{CONTEXT_PATH}}/index.html;
     }
@@ -17,10 +21,18 @@ server {
         return 302 /{{CONTEXT_PATH}}/;
     }
 
+    # Micro-app browser paths (document): fall back to THIS shell only.
+    # Adjust the regex to hosted activeRules (examples: member, manager).
+    location ~ ^/(member|manager)(/|$) {
+        try_files $uri $uri/ /{{CONTEXT_PATH}}/index.html;
+    }
+
     # Optional: proxy API to Gateway (adjust upstream in real deployments)
     # location /api/ {
     #     proxy_pass http://gateway:8080/;
     #     proxy_set_header Host $host;
     #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    #     proxy_set_header identities "";
+    #     proxy_set_header X-Identity-Organ-Type "";
     # }
 }

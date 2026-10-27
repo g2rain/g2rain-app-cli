@@ -2,6 +2,7 @@ schemaVersion: 1
 name: "{{PROJECT_NAME}}"
 repository: g2rain/g2rain-shell-template
 family: frontend-shell-template
+version: 1.0.1
 role: G2rain Main Shell 官方脚手架模板（由 create-g2rain-app shell 复制生成主应用）
 license: Apache-2.0
 architecture:
@@ -59,6 +60,7 @@ commands:
   install: npm install
   dev: npm run dev
   verify: npm run build
+  test: npm test
   preview: npm run preview
 collaborators:
   - repository: g2rain/g2rain-app-cli

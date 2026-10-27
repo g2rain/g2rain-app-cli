@@ -48,7 +48,7 @@ npm run verify:template-snapshots
 
 1. 校验 Git tag `vX.Y.Z` 与 `package.json.version` `X.Y.Z` 一致。
 2. `npm ci`、包内 snapshot verify、`npm test`、`prepublishOnly`、`npm pack --dry-run`。
-3. 从 tarball 冒烟生成并构建 App、默认 Shell、`--with-legacy` Shell。
+3. 从 tarball 冒烟生成并构建 App、默认 Shell、`--with-legacy` Shell。生成的 App 在安装时显式使用同一份候选 CLI tarball，避免候选版本尚未发布到 Registry 导致 ETARGET；此覆盖仅作用于临时冒烟项目，不修改内置模板或正式生成依赖的版本策略。
 4. 使用 `npm-production` Environment（人工审批）与 npm Trusted Publishing（OIDC + `--provenance`）发布。工作流在 `npm ci` 前安装 `npm@^11.5.1`，不读取 npm Token。
 5. 创建 GitHub Release（CLI 版本、模板 tag/SHA、legacy 说明、AppKit 依赖、破坏性变更）。
 

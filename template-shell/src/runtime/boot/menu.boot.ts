@@ -12,6 +12,7 @@ import {
 
 let watching = false
 let shellRouter: Router | null = null
+let menuRequest = 0
 
 /** Inject router created in boot() so restoreAfterAuth can navigate. */
 export function setMenuBootRouter(router: Router): void {
@@ -23,6 +24,7 @@ export function setMenuBootRouter(router: Router): void {
  * Watches token login so SSO callback also triggers registration.
  */
 export async function initMenus(): Promise<void> {
+  const request = ++menuRequest
   const tokenStore = useAccessTokenStore()
   const menuStore = useMenuStore()
   const shellItems = shellMenusAsMenuItems()
@@ -39,11 +41,13 @@ export async function initMenus(): Promise<void> {
 
   try {
     const backend = await getMenuList()
+    if (request !== menuRequest || !tokenStore.isLogin) return
     const finalMenus = [...shellItems, ...backend]
     menuStore.setMenuItems(finalMenus)
     menuStore.registerAppsFromMenus(finalMenus)
     tryRestore()
   } catch (error) {
+    if (request !== menuRequest || !tokenStore.isLogin) return
     console.warn('[menu.boot] failed to load authority menus:', error)
     menuStore.setMenuItems(shellItems)
     // 标记已初始化并尝试恢复深链；恢复失败时 restoreAfterAuth 会回首页
@@ -73,6 +77,7 @@ export function startMenuBoot(): void {
         return
       }
       menuStore.reset()
+      menuRequest++
       // Only clear on real logout — immediate boot (wasLoggedIn undefined) must keep deep-link return_url
       if (wasLoggedIn === true) {
         clearReturnUrl()
