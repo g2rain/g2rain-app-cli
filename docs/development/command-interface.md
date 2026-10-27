@@ -9,7 +9,7 @@ create-g2rain-app
 g2rain-app
 ```
 
-两者都指向 `dist/index.js`，行为必须一致。面向用户安装见 [usage.md](usage.md)（推荐 `npm install -g create-g2rain-app@1.0.0`）。
+两者都指向 `dist/index.js`，行为必须一致。面向用户安装见 [usage.md](usage.md)（推荐 `npm install -g create-g2rain-app@latest` 后使用 `g2rain-app`）。当前 CLI 发布候选版本为 `1.0.1`，以 package.json 与锁文件为准。
 
 ## 子命令与项目族
 
