@@ -106,7 +106,8 @@ jobs:
           test ! -f smoke-shell/.g2rain-template-meta.json
           npx create-g2rain-app shell smoke-shell-legacy --context-path admin --port 3000 --with-legacy
           test -f smoke-shell-legacy/src/platform/legacy/registry.ts
-          (cd smoke-app && npm install && npm run build)
+          # Verify the unpublished CLI candidate inside the generated app too.
+          (cd smoke-app && npm install --save-dev --save-exact "$GITHUB_WORKSPACE/$TARBALL" && npm run build)
           (cd smoke-shell && npm install && npm run build)
           (cd smoke-shell-legacy && npm install && npm run build)
 

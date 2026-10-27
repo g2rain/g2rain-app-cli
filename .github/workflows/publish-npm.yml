@@ -84,7 +84,9 @@ jobs:
           npx create-g2rain-app app smoke-app --context-path smoke
           npx create-g2rain-app shell smoke-shell --context-path admin --port 3000
           npx create-g2rain-app shell smoke-shell-legacy --context-path admin --port 3000 --with-legacy
-          (cd smoke-app && npm install && npm run build)
+          # The generated app requests this CLI version before it exists on npm.
+          # Install the exact candidate being verified instead of querying Registry.
+          (cd smoke-app && npm install --save-dev --save-exact "$GITHUB_WORKSPACE/$TARBALL" && npm run build)
           (cd smoke-shell && npm install && npm run build)
           (cd smoke-shell-legacy && npm install && npm run build)
 
