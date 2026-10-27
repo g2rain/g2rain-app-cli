@@ -1,7 +1,6 @@
 # 使用手册
 
-- 日期：2026-10-01
-- npm 包：`create-g2rain-app`（当前正式发布：`1.0.0`）
+- npm 包：`create-g2rain-app`（当前发布候选：`1.0.1`；安装命令使用 Registry 的 latest）
 - 命令：`g2rain-app`、`create-g2rain-app`（两个 bin 等价，指向同一入口）
 - 项目族：
   - `frontend-app`：包内 `template/`（源仓 `g2rain-app-template`）
@@ -14,12 +13,12 @@ Node.js 需要 `>=22`。
 
 ## 1. 安装命令（推荐）
 
-本机日常优先全局安装固定版本，装一次后可在任意目录使用：
+本机日常优先全局安装，装一次后可在任意目录使用 `g2rain-app`：
 
 ```bash
-npm install -g create-g2rain-app@1.0.0
+npm install -g create-g2rain-app@latest
 g2rain-app --version
-# 期望: 1.0.0
+# 核对实际安装的版本
 ```
 
 之后创建项目：
@@ -34,23 +33,19 @@ g2rain-app shell g2rain-admin-shell --context-path admin --port 3000
 ### 备选：不装全局
 
 ```bash
-# CI / 一次性冒烟：按包名 + 固定版本
-npx create-g2rain-app@1.0.0 app g2rain-member-app --context-path member
+# 一次性运行；CI 使用已验证的具体版本
+npx create-g2rain-app@latest app g2rain-member-app --context-path member
 
 # 需要显式跑 g2rain-app 这个 bin 时：
-npx --package=create-g2rain-app@1.0.0 g2rain-app app g2rain-member-app --context-path member
+npx --package=create-g2rain-app@latest g2rain-app app g2rain-member-app --context-path member
 ```
 
 ### 已有业务 App 内的 generate / build-config
 
 把 CLI 装成项目 `devDependency`（正式项目用 registry 版本，不要长期依赖 `file:`），再在 App 根目录调用：
 
-```json
-{
-  "devDependencies": {
-    "create-g2rain-app": "1.0.0"
-  }
-}
+```bash
+npm install --save-dev --save-exact create-g2rain-app@latest
 ```
 
 ```bash
