@@ -10,9 +10,9 @@ let qiankunStarted = false
  */
 export function ensureQiankunStarted(): void {
   if (qiankunStarted) return
-  // single-spa 默认 4s 超时：冷加载较慢的子应用会报 #31 被丢弃，放宽到 20s 且超时即失败
-  setBootstrapMaxTime(20000, true)
-  setMountMaxTime(20000, true)
+  // 超时 10s 且 dieOnTimeout；warningMillis=8s，避免默认 1s 就刷假 #31 warn
+  setBootstrapMaxTime(10000, true, 8000)
+  setMountMaxTime(10000, true, 8000)
   start({
     singular: false,
     sandbox: {
