@@ -44,6 +44,9 @@ export default defineConfig(({ mode }) => {
         [`${base}api/`]: backendProxy,
       },
     },
+    esbuild: {
+      pure: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
+    },
     build: {
       target: 'es2020',
       sourcemap: true,
