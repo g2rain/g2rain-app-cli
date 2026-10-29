@@ -171,6 +171,8 @@ VITE_RUN_MODE=alone VITE_SERVER_PORT=3001 VITE_BACKEND_ORIGIN=http://localhost:8
 
 也可以打开 `http://localhost:3001/?mode=alone`。未设置 `mode=alone` 时，直接访问开发地址会跳到 `VITE_MAIN_SHELL_ORIGIN` 加上 `VITE_MAIN_SHELL_REDIRECT_PREFIX`。
 
+壳打开子应用时，会在地址栏带上宿主参数 `g2shell`（如 `?g2shell=admin`）。直链打开子应用时，有合法的 `g2shell` 就跳回当前域名下对应的壳网关 `/{g2shell}/redirect/...`；没有 `g2shell` 时，才用 `VITE_MAIN_SHELL_ORIGIN` + `VITE_MAIN_SHELL_REDIRECT_PREFIX` 跳默认宿主。
+
 和主应用联调时只启动开发服务器，由主应用加载：
 
 ```powershell
