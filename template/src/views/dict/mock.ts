@@ -55,7 +55,7 @@ const dictItems: DictItem[] = [
       code: 'ACTIVE',
       name: '有效',
       sortIndex: 1,
-      usageCode: 'MEMBER_STATUS',
+      usageCode: 'SUBJECT_STATUS',
     }),
   ),
   Mock.mock(
@@ -64,7 +64,7 @@ const dictItems: DictItem[] = [
       code: 'INACTIVE',
       name: '无效',
       sortIndex: 2,
-      usageCode: 'MEMBER_STATUS',
+      usageCode: 'SUBJECT_STATUS',
     }),
   ),
 ];
