@@ -12,7 +12,7 @@
 
 ## 推荐补充（生成后的主应用）
 
-`1.0.1` 发布候选固定四个 Appkit 包为 `1.0.1`。深链恢复须验证菜单已就绪和延迟就绪两种场景：离开 Gateway 期间不被概览 Tab 的地址同步覆盖，离开成功或失败后均释放单飞标记。网关 API 代理清除客户端 `identities` 与 `X-Identity-Organ-Type`，部署环境应验证实际转发头。
+`1.0.2` 版本固定四个 Appkit 包为 `1.0.1`。深链恢复须验证菜单已就绪和延迟就绪两种场景：离开 Gateway 期间不被概览 Tab 的地址同步覆盖，离开成功或失败后均释放单飞标记。网关 API 代理清除客户端 `identities` 与 `X-Identity-Organ-Type`，部署环境应验证实际转发头。
 
 - Workspace store：激活右侧/左侧/回退概览的关闭策略单测
 - RuntimeAdapter：mount/update/unmount 串行队列

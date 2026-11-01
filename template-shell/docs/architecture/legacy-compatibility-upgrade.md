@@ -73,7 +73,7 @@ legacy adapter 与 message bridge **只查 registry**，禁止再读 `MicroAppDe
 
 ## 2.2 参考实现与本方案的收敛
 
-实现边界以 `g2rain-shell-template/legacy-overlay/`（及包内 `template-shell-legacy/`）为源码真源。历史上曾以 `g2rain-admin-shell` 的共享 loader / adapter / message bridge 为行为参考；**admin / chat 等运行仓已退出覆盖层，不得再以其源码为现网参考**。可复用的关键做法：
+实现边界以本仓 `legacy-overlay/`（及 CLI `template-shell-legacy/`）为源码真源。历史上曾以 `g2rain-admin-shell` 的共享 loader / adapter / message bridge 为行为参考；**admin / chat 等运行仓已退出覆盖层，不得再以其源码为现网参考**。可复用的关键做法：
 
 | 参考实现（覆盖层路径） | 可复用的做法 | 本模板的收敛要求 |
 | --- | --- | --- |
@@ -154,13 +154,13 @@ CLI 不得通过文本替换把 `mode` 或 `protocolVersion` 注入核心源码�
 
 ## 7. 当前代码的收敛要求
 
-升级时先从默认模板移除 `MicroAppDefinition.mode`、`protocolVersion` 及对 `application-code.config` 的引用，恢复可构建性；**不得**以补默认配置文件把 legacy 永久固化进核心。行为参考 `g2rain-shell-template/legacy-overlay/`（共享 loader、adapter、legacy message bridge），协议选择迁到可选 resolver / registry。
+升级时先从默认模板移除 `MicroAppDefinition.mode`、`protocolVersion` 及对 `application-code.config` 的引用，恢复可构建性；**不得**以补默认配置文件把 legacy 永久固化进核心。行为参考本仓 `legacy-overlay/`（共享 loader、adapter、legacy message bridge），协议选择迁到可选 resolver / registry。
 
 过渡期间，legacy Token-in-props 或旧事件映射必须登记到 `docs/architecture/deviations.md`（受影响应用、风险、删除条件）。
 
 ## 8. 关联文档
 
-- 中央 [Main Shell 契约](https://github.com/g2rain/g2rain/blob/main/docs/architecture/profiles/frontend-shell/main-shell-contract.md)
-- 中央 [应用编码兼容方案](https://github.com/g2rain/g2rain/blob/main/docs/architecture/profiles/frontend-shell/application-code-compatibility.md)
+- 中央 [Main Shell 契约](https://github.com/g2rain/g2rain/blob/v1.0.2/docs/architecture/profiles/frontend-shell/main-shell-contract.md)
+- 中央 [应用编码兼容方案](https://github.com/g2rain/g2rain/blob/v1.0.2/docs/architecture/profiles/frontend-shell/application-code-compatibility.md)
 - [Platform Main 采纳说明](../development/platform-main-adoption.md)
 - `g2rain-app-cli`：`docs/development/command-interface.md`、`docs/development/template-contract.md`

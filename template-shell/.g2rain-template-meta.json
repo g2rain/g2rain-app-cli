@@ -4,9 +4,9 @@
   "family": "frontend-shell",
   "kind": "shell-base",
   "sourceRepository": "https://github.com/g2rain/g2rain-shell-template",
-  "sourceRef": "v1.0.1",
-  "sourceCommit": "f20d42e832632e373950038ac06083b029f71624",
-  "contentSha256": "sha256:f637b83dace62283b928053d4ed8e54d414e5b867970109289315315730dc320",
-  "syncedAt": "2026-10-27T17:04:10.558Z",
+  "sourceRef": "v1.0.2",
+  "sourceCommit": "fc56a82b643644358894b9f20d12dcda6fdf0882",
+  "contentSha256": "sha256:db6f097ad13ff3d782eeeb3db26ed79c3c2d585afaa21ba59dfe0dfb58275db8",
+  "syncedAt": "2026-11-01T08:27:27.325Z",
   "syncWorkflow": ".github/workflows/sync-templates.yml"
 }

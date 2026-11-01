@@ -13,7 +13,9 @@ g2rain 官方 Vue 3 微前端子应用模板，提供 qiankun 集成、独立运
 
 本仓库是“被生成的应用模板”源仓，不是 CLI 本身。[g2rain-app-cli](https://github.com/g2rain/g2rain-app-cli)（npm：`create-g2rain-app`）在发布时通过 `npm run sync:template` 将本仓快照嵌入包内 `template/`，再负责复制、替换 `{{PROJECT_NAME}}` 与 `{{CONTEXT_PATH}}`，并将包信息和项目文档转换为业务 App 身份；生成后的应用继续使用本仓库约定的命令开发页面和生成资源配置。
 
-[官网](https://www.g2rain.com) · [完整文档](docs/index.md) · [CLI 使用手册](https://github.com/g2rain/g2rain-app-cli/blob/main/docs/development/usage.md) · [中央 Frontend App Profile](https://github.com/g2rain/g2rain/tree/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app) · [架构说明](docs/architecture/overview.md) · [代码生成](docs/development/code-generation.md) · [资源配置生成](docs/development/resource-generation.md) · [Issues](https://github.com/g2rain/g2rain/issues) · [Discussions](https://github.com/g2rain/g2rain/discussions)
+[官网](https://www.g2rain.com) · [完整文档](docs/index.md) · [CLI 使用手册](https://github.com/g2rain/g2rain-app-cli/blob/main/docs/development/usage.md) · [中央 Frontend App Profile](https://github.com/g2rain/g2rain/tree/v1.0.2/docs/architecture/profiles/frontend-app) · [架构说明](docs/architecture/overview.md) · [代码生成](docs/development/code-generation.md) · [资源配置生成](docs/development/resource-generation.md) · [Issues](https://github.com/g2rain/g2rain/issues) · [Discussions](https://github.com/g2rain/g2rain/discussions)
+
+当前模板版本：`1.0.2`。变更与升级说明见 [CHANGELOG](CHANGELOG.md)。
 
 ## 核心能力
 
@@ -21,7 +23,7 @@ g2rain 官方 Vue 3 微前端子应用模板，提供 qiankun 集成、独立运
 | --- | --- |
 | 微前端 | qiankun `bootstrap`、`mount`、`unmount`、`update`，支持同 entry 多 Tab 的 `appKey` 隔离 |
 | 双运行模式 | `mode=alone` 独立运行；默认作为集成意图，经 main-shell 网关或 qiankun 运行 |
-| 认证 | 独立模式走 SSO，集成模式接收主应用的 `token`、`tokenKid`、`client` 和 `locale` |
+| 认证 | 独立模式走 SSO，集成模式经 Auth Bridge 定向消息获取认证态，公开 props 仅传身份与 Locale |
 | 动态资源 | 登录后从 `/basis/authority/resources` 加载页面、页面元素与 API 端点 |
 | 工程生成 | 从 `database.sql` 生成 `view/api/type/mock/route` |
 | 资源生成 | 从路由和静态 `v-permission` 生成资源 JSON |
@@ -31,9 +33,9 @@ g2rain 官方 Vue 3 微前端子应用模板，提供 qiankun 集成、独立运
 
 | 目录 | 职责 | 依赖原则 |
 | --- | --- | --- |
-| `src/shared` | 环境变量、URL、JWT、通用工具，以及构建期生成器 | 最底层，不依赖应用运行时或业务页面 |
-| `src/components` | HTTP、权限、Loading、微前端消息和通用 UI 组件 | 目标上只依赖 shared 与第三方库 |
-| `src/platform` | Token、语言、i18n、平台错误模型和微前端平台适配 | 可依赖 components/shared，不承载业务页面 |
+| `src/shared` | 环境变量、URL、JWT、通用工具及生成配置产物 | 最底层，不依赖应用运行时或业务页面 |
+| `src/components` | 权限、Loading、微前端消息与本地交互组件；通用 UI 使用 `@g2rain/ui` | 目标上只依赖 shared 与第三方库 |
+| `src/platform` | Token、语言、i18n 和微前端平台适配；错误模型使用 `@g2rain/platform/error` | 可依赖 components/shared，不承载业务页面 |
 | `src/runtime` | 当前应用的认证、HTTP 注入、资源加载、路由和启动编排 | 组合 platform/components/shared，不沉淀跨项目组件 |
 | `src/views` | 业务页面、页面 API、类型、Mock 和路由组件注册表 | 可以使用下层能力，不被可复用层反向依赖 |
 | `nginx` / `lua` | 容器入口、反向代理、静态资源和可选签名链路 | 部署运行时，不存放前端业务逻辑 |
@@ -109,12 +111,12 @@ flowchart LR
   Mode -->|是| SSO[独立 SSO 与资源初始化]
   Mode -->|否| Redirect[跳转 main-shell 网关]
   Shell[main-shell] --> Qiankun[qiankun mount]
-  Qiankun --> Token[注入 Token / Client / Locale]
+  Qiankun --> Token[Auth Bridge 认证与 Locale 上下文]
   Token --> Resource[加载应用资源]
   Resource --> Route[组装路由并挂载页面]
 ```
 
-集成模式的 `mount` 必须提供 `container` 和非空 `appKey`；Token 初始化先于资源和路由加载。详细时序见[运行时流程](docs/architecture/runtime-flows.md)。
+集成模式的 `mount` 必须提供 `container`、`applicationCode`、`viewId`、`instanceId`，且 `appKey === instanceId`；Token 初始化先于资源和路由加载。详细时序见[运行时流程](docs/architecture/runtime-flows.md)。
 
 ## 配置与部署
 
@@ -145,7 +147,7 @@ docker run --rm -p 8080:8080 \
 | 主题 | 入口 |
 | --- | --- |
 | 项目事实与 Agent 入口 | [docs/project.yaml](docs/project.yaml) · [AGENTS.md](AGENTS.md) |
-| 中央基线与项目偏差 | [Frontend App 1.0.0-draft](https://github.com/g2rain/g2rain/tree/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app) · [本项目偏差](docs/architecture/deviations.md) |
+| 中央基线与项目偏差 | [Frontend App 1.0.0](https://github.com/g2rain/g2rain/tree/v1.0.2/docs/architecture/profiles/frontend-app) · [本项目偏差](docs/architecture/deviations.md) |
 | 架构、层次和依赖 | [架构概览](docs/architecture/overview.md) · [层次职责](docs/architecture/layers.md) · [偏差](docs/architecture/deviations.md) |
 | 页面和复用能力 | [Views 规范](docs/development/views-conventions.md) · [Components 与 Platform](docs/development/components-and-platform.md) |
 | 生成能力 | [代码生成](docs/development/code-generation.md) · [资源配置生成](docs/development/resource-generation.md) |
