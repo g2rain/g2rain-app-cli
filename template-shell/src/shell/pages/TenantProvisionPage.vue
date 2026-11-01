@@ -264,14 +264,15 @@ onMounted(async () => {
 <style scoped>
 .tenant-provision-container {
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--g2-bg-page);
   min-height: 100%;
   box-sizing: border-box;
+  color: var(--g2-text-primary);
 }
 
 .form-card {
   width: 100%;
-  background-color: #fff;
+  background-color: var(--g2-bg-container);
 }
 
 .card-header {
@@ -281,11 +282,11 @@ onMounted(async () => {
 
 .collapse-title {
   font-size: 14px;
-  color: #606266;
+  color: var(--g2-text-regular);
 }
 
 .collapse-title--active {
-  color: #409eff;
+  color: var(--g2-color-primary);
   font-weight: 600;
 }
 
@@ -296,7 +297,7 @@ onMounted(async () => {
 .form-actions {
   margin-top: 40px;
   padding-top: 20px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--g2-border-color-light);
   text-align: center;
 }
 

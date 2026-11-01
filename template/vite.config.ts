@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => {
       envConfigPlugin(), // 生成运行时环境配置文件
     ],
     esbuild: {
-      drop: [],
+      pure: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
     },
     build: {
       minify: 'esbuild'

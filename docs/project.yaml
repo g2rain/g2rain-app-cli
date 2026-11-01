@@ -4,7 +4,7 @@ family: frontend-tooling-cli
 role: 创建 frontend-app 业务子应用与 frontend-shell Main Shell 工程
 package:
   name: create-g2rain-app
-  version: 1.0.1
+  version: 1.0.2
   private: false
   license: Apache-2.0
   files:
@@ -27,14 +27,14 @@ architecture:
 
 centralContract:
   repository: https://github.com/g2rain/g2rain
-  ref: feature/g2rain-architectur-init
+  ref: v1.0.2
   profiles:
     - path: docs/architecture/profiles/frontend-app
       policy: docs/architecture/profiles/frontend-app/scaffolding-policy.md
     - path: docs/architecture/profiles/frontend-shell
       policy: docs/architecture/profiles/frontend-shell/shell-generation-policy.md
   generatedProjectProfileVersion:
-    frontend-app: 1.0.0-draft
+    frontend-app: 1.0.0
     frontend-shell: 1.0.0
 
 families:
@@ -176,6 +176,7 @@ gitWorkflow:
 
 documentation:
   entry: docs/index.md
+  release: docs/releases/v1.0.2.md
   usage: docs/development/usage.md
   agentEntry: AGENTS.md
   required:

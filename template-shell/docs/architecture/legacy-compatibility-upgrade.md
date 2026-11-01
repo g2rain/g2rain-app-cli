@@ -73,16 +73,16 @@ legacy adapter 与 message bridge **只查 registry**，禁止再读 `MicroAppDe
 
 ## 2.2 参考实现与本方案的收敛
 
-实现边界以仓库 `g2rain-admin-shell`（测试仓，相对路径 `src/platform/apps/`、`src/components/micro-app/legacy-message-bridge.ts`）为行为参考，复用其已验证的三个关键做法：
+实现边界以 `g2rain-shell-template/legacy-overlay/`（及包内 `template-shell-legacy/`）为源码真源。历史上曾以 `g2rain-admin-shell` 的共享 loader / adapter / message bridge 为行为参考；**admin / chat 等运行仓已退出覆盖层，不得再以其源码为现网参考**。可复用的关键做法：
 
-| 参考实现 | 可复用的做法 | 本模板的收敛要求 |
+| 参考实现（覆盖层路径） | 可复用的做法 | 本模板的收敛要求 |
 | --- | --- | --- |
 | `src/platform/apps/qiankun-adapter.ts` | 两种协议共用一个 loader / handle 表 | 保持一个 loader，legacy 不得自行创建 qiankun handle 表 |
 | `src/platform/apps/adapters/{appkit,legacy}-adapter.ts` | AppKit 透传公开 props；legacy 只在 adapter 中补旧 props | 放到可选覆盖层；默认模板不出现 legacy adapter |
 | `src/components/micro-app/legacy-message-bridge.ts` | 旧 `TOKEN_INVALID` 归一化后复用 Shell 刷新与定向响应 | 仅覆盖层 `shell-extensions` 注册；判定源改为 **registry** |
 | `src/platform/apps/application-code.config.ts` | 仅 legacy applicationCode 列表，未登记默认 AppKit | 移入 `src/platform/legacy/registry.ts` |
 
-参考 Shell 当前把 `mode`、`protocolVersion` 写进 `MicroAppDefinition` 并由 `RuntimeStore` 按 mode 选 adapter——可作为迁移期行为参考，但**不是**本模板目标核心模型。
+不得把 `mode` / `protocolVersion` 写回 `MicroAppDefinition`；协议选择只经可选 resolver / registry。
 
 ## 3. 适配器选择
 
@@ -154,7 +154,7 @@ CLI 不得通过文本替换把 `mode` 或 `protocolVersion` 注入核心源码�
 
 ## 7. 当前代码的收敛要求
 
-升级时先从默认模板移除 `MicroAppDefinition.mode`、`protocolVersion` 及对 `application-code.config` 的引用，恢复可构建性；**不得**以补默认配置文件把 legacy 永久固化进核心。行为参考 `g2rain-admin-shell` 的共享 loader、adapter 与 legacy message bridge，协议选择迁到可选 resolver / registry。
+升级时先从默认模板移除 `MicroAppDefinition.mode`、`protocolVersion` 及对 `application-code.config` 的引用，恢复可构建性；**不得**以补默认配置文件把 legacy 永久固化进核心。行为参考 `g2rain-shell-template/legacy-overlay/`（共享 loader、adapter、legacy message bridge），协议选择迁到可选 resolver / registry。
 
 过渡期间，legacy Token-in-props 或旧事件映射必须登记到 `docs/architecture/deviations.md`（受影响应用、风险、删除条件）。
 

@@ -3,7 +3,7 @@
 ## 包结构
 
 - npm 包：`create-g2rain-app`
-- 当前版本：`1.0.1`（本地维护版本，尚未发布）
+- 当前版本：`1.0.2`
 - 发布文件：`dist`、`template`、`template-shell`、`template-shell-legacy`、`LICENSE`、`README.md`
 - bin：`create-g2rain-app`、`g2rain-app` → `dist/index.js`
 - Node engines：`>=22`
@@ -14,7 +14,7 @@
 
 ## 发布前（仓库侧）
 
-1. Appkit 已发布 `1.0.1`；本次 App 模板四个 `@g2rain/*` 依赖固定为 `1.0.1`，CLI 候选版本为 `1.0.1`。源模板和快照的依赖版本必须分别核对，不能仅更新 CLI 自身版本。
+1. Appkit 已发布 `1.0.1`；本次 App / Shell 模板四个 `@g2rain/*` 依赖保持 `1.0.1`，CLI 版本为 `1.0.2`。源模板和快照的依赖版本必须分别核对，不能仅更新 CLI 自身版本。
 2. App / Shell 模板已打受保护 tag 并完成 Release。
 3. 手动触发 `.github/workflows/sync-templates.yml`，输入至少一个模板 tag。
 4. 人工从 `chore/sync-templates` 创建（或刷新）同步 PR 并合并（meta v2、contentSha256、无 legacy 泄漏、tarball 冒烟）。
