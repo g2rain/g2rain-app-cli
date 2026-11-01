@@ -1,6 +1,6 @@
 # 架构概览
 
-本项目试点采用 g2rain [`frontend-app 1.0.0-draft`](https://github.com/g2rain/g2rain/tree/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app)。中央 Profile 管理跨 App 的分层、运行、生成与安全规则；本页描述本模板的具体落地。
+本项目采用 g2rain [`frontend-app 1.0.0`](https://github.com/g2rain/g2rain/tree/v1.0.2/docs/architecture/profiles/frontend-app)。中央 Profile 管理跨 App 的分层、运行、生成与安全规则；本页描述本模板的具体落地。
 
 g2rain-app-template 是官方 Vue 3 微前端子应用工程模板。本仓库负责模板运行架构、平台能力、示例页面、生成工具和部署配置。相对中央基线的当前偏差见[架构偏差](deviations.md)。
 
@@ -39,7 +39,7 @@ flowchart TD
   Platform --> Shared
 ```
 
-图中表示目标依赖。当前源码存在 components/platform 对上层的反向引用，以及 runtime 对 views 注册表的直接引用，详见[架构偏差](deviations.md)。
+图中表示目标依赖。当前源码存在 platform 对上层的反向引用，以及 runtime 对 views 注册表的直接引用，详见[架构偏差](deviations.md)。
 
 ## 核心事实
 

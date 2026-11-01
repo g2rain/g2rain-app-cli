@@ -56,7 +56,7 @@ npm run preview
 
 **契约要点**：`loadMicroApp.name === MicroAppDefinition.name === applicationCode`（禁止 `__${instanceId}` 后缀）。
 
-联调清单：打开 sub 菜单 → 地址变为微路径 → F5 应恢复同 Tab；访问 `/admin/redirect/{activeRule}/...` 应打开对应子应用；未登录深链经 SSO 后由 `restoreAfterAuth` 消费 `return_url`（见 [deviations.md](../architecture/deviations.md) TPL-001 / [runtime-flows.md](../architecture/runtime-flows.md)）。
+联调清单：打开 sub 菜单 → 地址变为微路径 → F5 应恢复同 Tab；访问 `/admin/redirect/{activeRule}/...` 应打开对应子应用；未登录深链经 SSO 后由 `restoreAfterAuth` 消费当前壳的 `return_url:${getContextPath()}`（见 [deviations.md](../architecture/deviations.md) TPL-001 / [runtime-flows.md](../architecture/runtime-flows.md)）。
 
 ## Header 右上角
 

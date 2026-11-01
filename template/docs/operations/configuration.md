@@ -51,3 +51,6 @@ Vite 构建插件生成 `dist/env-config.js`，容器入口只替换 `__SSO_BASE
 4. `.env` / `.env.production` 示例和本文档。
 
 不要把 Secret 放进任何 `VITE_*` 变量；前端构建产物和 `window._env_` 对浏览器用户可见。
+
+
+集成直链支持查询参数 `g2shell`（例如 `?g2shell=admin`）：合法值匹配 `^[a-z0-9][a-z0-9_-]*$`，跳转当前 Origin 的 `/{g2shell}/redirect`；该参数保留给宿主壳处理。参数缺失或非法时，使用 `VITE_MAIN_SHELL_ORIGIN` 与 `VITE_MAIN_SHELL_REDIRECT_PREFIX` 兜底。跨端口开发若要使用默认宿主配置，应移除 `g2shell`。

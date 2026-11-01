@@ -14,6 +14,11 @@ import { watch } from 'vue';
 import { Generator } from '@shared/utils/random.util';
 import { generateClient } from '@shared/utils/jwt.util';
 
+/** 按应用隔离的回跳地址 key：同域多个应用同时重新登录时互不覆盖 */
+export function returnUrlKey(): string {
+  return `return_url:${env.VITE_CONTEXT_PATH}`;
+}
+
 /**
  * 当前页面相对路由 base（VITE_CONTEXT_PATH）的完整路径，供 router.replace 使用。
  * 位于 SSO 回调页时返回 null（回调页不能作为登录后的目标）。
@@ -88,9 +93,9 @@ class SSOService {
 
     ssoUrl.search = params.toString();
     // 独立模式记住登录前的页面，回调完成后由 main.ts 统一跳回（回调页本身不记录，已有记录不覆盖）
-    if (!isQiankunRuntime() && !localStorage.getItem('return_url')) {
+    if (!isQiankunRuntime() && !localStorage.getItem(returnUrlKey())) {
       const returnUrl = currentRouterPath();
-      if (returnUrl) localStorage.setItem('return_url', returnUrl);
+      if (returnUrl) localStorage.setItem(returnUrlKey(), returnUrl);
     }
     // 插件 $subscribe 不会在跳转前同步落盘；独立模式按 Token Store 的 pick 直接写入。
     if (!isQiankunRuntime()) {

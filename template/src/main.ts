@@ -31,7 +31,7 @@ import { showErrorMessage } from '@/components/ErrorMessage';
 import { loadElementPlusLocaleByCode } from '@platform/locale';
 import { useLocaleStore } from '@platform/stores/locale.store';
 import { env } from '@shared/env';
-import { sso } from '@runtime/auth';
+import { returnUrlKey, sso } from '@runtime/auth';
 import { updateHttpBaseURLFromHost } from '@runtime/http';
 import type { MicroAppMessageUnion } from '@/components/micro-app';
 
@@ -213,8 +213,8 @@ const definition = createStandardSubPlatform({
             try {
               await initApplicationResources(router);
               // return_url 只在这里读取：资源路由已注册，避免与 SsoCallback 页面重复跳转
-              const returnUrl = localStorage.getItem('return_url') || '/';
-              localStorage.removeItem('return_url');
+              const returnUrl = localStorage.getItem(returnUrlKey()) || '/';
+              localStorage.removeItem(returnUrlKey());
               await router.replace(returnUrl);
               await router.isReady();
             } catch (error) {

@@ -8,13 +8,13 @@
 - 项目事实：`docs/project.yaml`
 - 文档入口：`docs/index.md`
 - 中央 Profile：`frontend-app`
-- 当前试点版本：`1.0.0-draft`
+- 当前 Profile 版本：`1.0.0`
 - 中央仓库：`https://github.com/g2rain/g2rain`
-- 试点分支：`feature/g2rain-architectur-init`
+- 中央文档 Tag：`v1.0.2`
 - Profile 路径：`docs/architecture/profiles/frontend-app`
 - 本项目偏差：`docs/architecture/deviations.md`
 
-中央 Profile 是所有同类前端 App 公共规则的事实来源；本项目 docs 维护模板实现、生成器、部署细节和当前偏差。正式发布后应把基线引用从试点分支切换到包含 `frontend-app` 的固定架构 Tag，不能继续跟随开发分支。
+中央 Profile 是所有同类前端 App 公共规则的事实来源；本项目 docs 维护模板实现、生成器、部署细节和当前偏差。中央文档统一引用 Tag `v1.0.2`，不跟随开发分支。
 
 ## 开始前
 

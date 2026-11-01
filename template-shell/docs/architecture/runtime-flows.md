@@ -35,8 +35,8 @@
 2. **网关**：`/admin/redirect/member/...`（Router：`/redirect/:pathMatch(.*)*`）→ `SubAppRedirectGateway`：
    - 未登录：`saveReturnUrl` → SSO
    - 已登录：等菜单定义就绪 → `handleRedirectGatewayWhenAuthed` → 打开 Tab 后 `router.replace('/')`，再 `syncBrowserAddressForTab` 写回真实微路径。
-3. **SSO 回跳**：`SsoCallback` 仍 `replace('/')`；`return_url`（localStorage）由 `restoreAfterAuth` 在 `menu.boot` 后消费。
-4. `redirectToSSO` 前若尚无 `return_url` 则写入当前 pathname（微路径会包装为网关路径）。
+3. **SSO 回跳**：`SsoCallback` 仍 `replace('/')`；`return_url:${getContextPath()}`（localStorage）由 `restoreAfterAuth` 在 `menu.boot` 后消费。
+4. `redirectToSSO` 前若尚无当前壳的回跳记录 则写入当前 pathname（微路径会包装为网关路径）。
 5. 登出：`clearReturnUrl` + `resetNavigationRestoreState`。
 
 本期不做：动态注册壳业务子路由；Token 不得进入 URL / return_url。
@@ -72,3 +72,7 @@
 - 浏览器 History base = 同一 Context Path
 - **开发态**：`vite-plugin-micro-spa-fallback` 将非 Context Path 的 HTML 导航（如 `/member/...`）回退到壳 SPA
 - **生产 Nginx**：`{{CONTEXT_PATH}}` 下静态资源 `try_files` 回退 `index.html`；同域微应用 **activeRule 的 document 请求**亦需回退到**壳** `index.html`（子应用静态资源仍按 entry 源分发）。否则刷新 `/member/...` 会 404
+
+## v1.0.2 导航约定
+
+子应用 Tab 地址经统一同步入口附加 `g2shell`（当前壳 Context Path 去掉首个 `/`）。Gateway 解析与导航恢复前移除该参数，不传入子应用 initialRoute。SSO 回跳键为 `return_url:${getContextPath()}`，旧键不迁移。single-spa bootstrap/mount 超时为 10 秒、超时失败，8 秒开始告警。兼容与升级细节见[发布说明](../releases/v1.0.2.md)。
