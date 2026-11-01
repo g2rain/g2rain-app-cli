@@ -5,9 +5,9 @@
 ## 项目定位
 
 - 类型：Node.js 前端脚手架 + 开发期生成 CLI
-- npm 包：`create-g2rain-app`（当前已发布 `1.0.0`；本地维护版本以 `package.json` 为准）
+- npm 包：`create-g2rain-app`（当前维护版本以 `package.json` 为准）
 - bin：`create-g2rain-app`、`g2rain-app`
-- 面向用户推荐：`npm install -g create-g2rain-app@1.0.0` 后使用 `g2rain-app`（详见 `docs/development/usage.md`）
+- 面向用户推荐：`npm install -g create-g2rain-app@latest` 后使用 `g2rain-app`（详见 `docs/development/usage.md`）
 - 子命令：`app` / `shell` / `create`（默认）、`generate`、`build-config`
 - 项目族：
   - `frontend-app`：包内 `template/`（正式：GitHub Actions sync-templates ← `g2rain-app-template` tag）

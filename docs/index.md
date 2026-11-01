@@ -4,6 +4,10 @@
 
 面向业务开发者的安装方式：全局安装已发布 npm 包后使用 `g2rain-app`（见 [使用手册](development/usage.md)）。`npm link` / 本地 `dist` 仅用于本仓开发。
 
+## 发布记录
+
+- [v1.0.2](releases/v1.0.2.md)
+
 ## 架构
 
 - [架构概览](architecture/overview.md)

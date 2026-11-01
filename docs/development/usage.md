@@ -1,6 +1,6 @@
 # 使用手册
 
-- npm 包：`create-g2rain-app`（当前发布候选：`1.0.1`；安装命令使用 Registry 的 latest）
+- npm 包：`create-g2rain-app`（当前版本：`1.0.2`；安装命令使用 Registry 的 latest）
 - 命令：`g2rain-app`、`create-g2rain-app`（两个 bin 等价，指向同一入口）
 - 项目族：
   - `frontend-app`：包内 `template/`（源仓 `g2rain-app-template`）

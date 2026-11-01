@@ -3,7 +3,7 @@
 本文只服务 **本仓库（g2rain-app-cli）开发者**。普通用户创建项目请全局安装已发布包，见 [使用手册](usage.md)：
 
 ```bash
-npm install -g create-g2rain-app@1.0.0
+npm install -g create-g2rain-app@latest
 g2rain-app app ...
 ```
 
@@ -39,7 +39,7 @@ npm link
 g2rain-app smoke-app --context-path smoke
 ```
 
-`npm link` 会覆盖本机全局同名 bin，用完后按团队环境处理（例如改回 `npm install -g create-g2rain-app@1.0.0`）。不要把它写进面向业务开发者的安装说明。
+`npm link` 会覆盖本机全局同名 bin，用完后按团队环境处理（例如改回 `npm install -g create-g2rain-app@latest`）。不要把它写进面向业务开发者的安装说明。
 
 ## 调试
 
