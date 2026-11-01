@@ -8,7 +8,7 @@
 
 使用锁文件安装：
 
-模板版本为 `1.0.1`，四个 `@g2rain/*` 运行依赖均固定为已发布的 `1.0.1`。依赖升级时使用 `npm install` 更新锁文件并验证构建；其他开发环境继续按锁文件安装。
+模板版本为 `1.0.2`，四个 `@g2rain/*` 运行依赖均固定为已发布的 `1.0.1`。依赖升级时使用 `npm install` 更新锁文件并验证构建；其他开发环境继续按锁文件安装。
 
 ```bash
 npm ci
@@ -69,3 +69,6 @@ npm run preview
 - SSO 回调失败：检查 Context Path、Redirect URI、IAM 地址和 main-shell 路由是否成对配置。
 
 更多问题见[故障排查](../operations/troubleshooting.md)。
+
+
+集成直链支持查询参数 `g2shell`（例如 `?g2shell=admin`）：合法值匹配 `^[a-z0-9][a-z0-9_-]*$`，跳转当前 Origin 的 `/{g2shell}/redirect`；该参数保留给宿主壳处理。参数缺失或非法时，使用 `VITE_MAIN_SHELL_ORIGIN` 与 `VITE_MAIN_SHELL_REDIRECT_PREFIX` 兜底。跨端口开发若要使用默认宿主配置，应移除 `g2shell`。

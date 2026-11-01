@@ -2,6 +2,10 @@
 
 本目录记录 Main Shell 官方模板（`frontend-shell-template`）的项目事实，对齐中央 `frontend-app 1.0.0` 与 `frontend-shell 1.0.0`，并补充模板占位符与脚手架约定。
 
+## 发布记录
+
+- [v1.0.2](releases/v1.0.2.md)
+
 ## 导航
 
 - [项目元数据](project.yaml)

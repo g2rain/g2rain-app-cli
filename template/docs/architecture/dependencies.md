@@ -1,6 +1,6 @@
 # 依赖规则
 
-公共依赖规则以中央 [Frontend App Profile](https://github.com/g2rain/g2rain/tree/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app) 为准。本页补充模板的导入方式和当前迁移要求，偏离必须登记在[架构偏差](deviations.md)。
+公共依赖规则以中央 [Frontend App Profile](https://github.com/g2rain/g2rain/tree/v1.0.2/docs/architecture/profiles/frontend-app) 为准。本页补充模板的导入方式和当前迁移要求，偏离必须登记在[架构偏差](deviations.md)。
 
 ## 目标方向
 

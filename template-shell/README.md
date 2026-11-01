@@ -11,13 +11,13 @@
 
 g2rain 官方 Vue 3 Main Shell 模板：Header / Sidebar / Tab / Workspace / Footer、Pinia Workspace 模型、`@g2rain/platform/main` + `@g2rain/http` + `@g2rain/theme` / `@g2rain/ui` 基线接入点，以及 qiankun RuntimeAdapter 扩展位。
 
-本仓库是「被生成的主应用模板」源仓，不是 CLI 本身。[g2rain-app-cli](https://github.com/g2rain/g2rain-app-cli) 的 `create-g2rain-app shell` 将复制本仓并替换占位符后产出可运行主应用。权威生产参考壳是 [g2rain-main-shell](https://github.com/g2rain/g2rain-main-shell)；跨仓架构契约见中央 [Main Shell 契约](https://github.com/g2rain/g2rain/blob/main/docs/architecture/profiles/frontend-shell/main-shell-contract.md)，appkit 接线细节见其 [Main Shell 接入](https://github.com/g2rain/g2rain-appkit/blob/main/docs/integration/main.md)。
+本仓库是「被生成的主应用模板」源仓，不是 CLI 本身。[g2rain-app-cli](https://github.com/g2rain/g2rain-app-cli) 的 `create-g2rain-app shell` 将复制本仓并替换占位符后产出可运行主应用。权威生产参考壳是 [g2rain-main-shell](https://github.com/g2rain/g2rain-main-shell)；跨仓架构契约见中央 [Main Shell 契约](https://github.com/g2rain/g2rain/blob/v1.0.2/docs/architecture/profiles/frontend-shell/main-shell-contract.md)，appkit 接线细节见其 [Main Shell 接入](https://github.com/g2rain/g2rain-appkit/blob/main/docs/integration/main.md)。
 
-[官网](https://www.g2rain.com) · [完整文档](docs/index.md) · [中央 Frontend Shell Profile](https://github.com/g2rain/g2rain/tree/architecture-v1.2.0/docs/architecture/profiles/frontend-shell) · [Issues](https://github.com/g2rain/g2rain/issues)
+[官网](https://www.g2rain.com) · [完整文档](docs/index.md) · [中央 Frontend Shell Profile](https://github.com/g2rain/g2rain/tree/v1.0.2/docs/architecture/profiles/frontend-shell) · [Issues](https://github.com/g2rain/g2rain/issues)
 
 ## 核心能力
 
-模板版本为 `1.0.1`，`@g2rain/platform`、`@g2rain/http`、`@g2rain/theme` 和 `@g2rain/ui` 均固定为已发布的 `1.0.1`。修改依赖后同步锁文件；CLI 内置模板须从包含本次修改的模板 Tag 重新同步。
+模板版本为 `1.0.2`，`@g2rain/platform`、`@g2rain/http`、`@g2rain/theme` 和 `@g2rain/ui` 均固定为已发布的 `1.0.1`。修改依赖后同步锁文件；CLI 内置模板须从包含本次修改的模板 Tag 重新同步。
 
 | 能力 | 当前实现 |
 | --- | --- |
@@ -84,3 +84,7 @@ npm run build
 ## 许可证
 
 本项目采用 [Apache License 2.0](LICENSE) 开源。
+
+## 发布记录
+
+- [v1.0.2 发布说明](docs/releases/v1.0.2.md) · [CHANGELOG](CHANGELOG.md)

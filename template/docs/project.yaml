@@ -3,15 +3,15 @@ name: g2rain-app-template
 family: frontend-app-template
 role: g2rain Vue 3 微前端子应用工程模板
 packageNameTemplate: "{{PROJECT_NAME}}"
-version: 1.0.1
+version: 1.0.2
 license: Apache-2.0
 
 architectureBaseline:
   repository: https://github.com/g2rain/g2rain
-  ref: feature/g2rain-architectur-init
+  ref: v1.0.2
   profile: docs/architecture/profiles/frontend-app
-  version: 1.0.0-draft
-  status: pilot
+  version: 1.0.0
+  status: stable
   deviations: docs/architecture/deviations.md
 
 projectArchitecture:

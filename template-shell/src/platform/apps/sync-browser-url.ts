@@ -1,8 +1,8 @@
 import type { WorkspaceTab } from '../types/workspace'
 import { useRuntimeStore } from '../stores/runtime.store'
 import { SHELL_PAGE_PATHS } from '../menus/shell-menus'
-import { getPathWithContextPath } from '../../shared/env'
-import { replaceBrowserPathname, wrapActiveRule } from '../../shared/url'
+import { getContextPath, getPathWithContextPath } from '../../shared/env'
+import { replaceBrowserPathname, setShellParam, wrapActiveRule } from '../../shared/url'
 import { isDeepLinkLeavingGateway } from '../../shared/deep-link-flags'
 
 /**
@@ -37,7 +37,9 @@ export function syncBrowserAddressForTab(tab: WorkspaceTab | undefined | null): 
   const rawPath = lastActivePath ?? tab.initialRoute
   if (!rawPath) return
 
-  const pathname = wrapActiveRule(definition.activeRule, rawPath)
+  // 带上 g2shell：刷新或分享后由子应用跳回本壳，而不是默认宿主
+  const shell = getContextPath().replace(/^\//, '') || null
+  const pathname = setShellParam(wrapActiveRule(definition.activeRule, rawPath), shell)
   replaceBrowserPathname(pathname)
   console.info('[syncBrowserAddressForTab] micro-app', {
     tabId: tab.tabId,

@@ -2,12 +2,12 @@ schemaVersion: 1
 name: "{{PROJECT_NAME}}"
 repository: g2rain/g2rain-shell-template
 family: frontend-shell-template
-version: 1.0.1
+version: 1.0.2
 role: G2rain Main Shell 官方脚手架模板（由 create-g2rain-app shell 复制生成主应用）
 license: Apache-2.0
 architecture:
   centralRepository: g2rain/g2rain
-  baselineRef: architecture-v1.2.0
+  baselineRef: v1.0.2
   baseProfile:
     path: docs/architecture/profiles/frontend-app
     version: 1.0.0
@@ -73,6 +73,7 @@ collaborators:
     role: 推荐联调子应用（接入 /sub 后）
 documentation:
   entry: docs/index.md
+  release: docs/releases/v1.0.2.md
   agentEntry: AGENTS.md
   platformMainAdoption: docs/development/platform-main-adoption.md
   uiThemeAdoption: docs/development/ui-theme-adoption.md

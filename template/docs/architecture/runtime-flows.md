@@ -73,3 +73,8 @@ sequenceDiagram
 - 独立模式由本地 locale Store 管理并持久化选择。
 - 集成模式使用 main-shell 的 `locale` props，mount/update 时加载对应文案。
 - HTTP 请求通过平台 locale 能力附加 `Accept-Language`。
+
+
+集成直链支持查询参数 `g2shell`（例如 `?g2shell=admin`）：合法值匹配 `^[a-z0-9][a-z0-9_-]*$`，跳转当前 Origin 的 `/{g2shell}/redirect`；该参数保留给宿主壳处理。参数缺失或非法时，使用 `VITE_MAIN_SHELL_ORIGIN` 与 `VITE_MAIN_SHELL_REDIRECT_PREFIX` 兜底。跨端口开发若要使用默认宿主配置，应移除 `g2shell`。
+
+独立模式 SSO 回跳路径存储在 `localStorage` 的 `return_url:${VITE_CONTEXT_PATH}`，回跳完成后清除，避免同域不同 Context Path 的应用相互覆盖。旧 `return_url` 不自动迁移，升级前未完成的登录回跳需要重新发起。

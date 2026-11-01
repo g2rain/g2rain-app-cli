@@ -7,7 +7,7 @@
 3. `docs/requirements/` 中唯一处于 `开发中` 的需求（若任务为需求开发）
 4. 中央 `frontend-app 1.0.0` 与 `frontend-shell 1.0.0` Profile
 5. 与任务有关的本地专题文档和 Git Diff
-6. 涉及子应用编排、公开 props、跨应用消息、HTTP/Token 或 `@g2rain/platform/main` 时：中央 [Main Shell 契约](https://github.com/g2rain/g2rain/blob/main/docs/architecture/profiles/frontend-shell/main-shell-contract.md)、appkit [Main Shell 接入](https://github.com/g2rain/g2rain-appkit/blob/main/docs/integration/main.md)，以及本仓 [Platform Main 采纳说明](docs/development/platform-main-adoption.md)
+6. 涉及子应用编排、公开 props、跨应用消息、HTTP/Token 或 `@g2rain/platform/main` 时：中央 [Main Shell 契约](https://github.com/g2rain/g2rain/blob/v1.0.2/docs/architecture/profiles/frontend-shell/main-shell-contract.md)、appkit [Main Shell 接入](https://github.com/g2rain/g2rain-appkit/blob/main/docs/integration/main.md)，以及本仓 [Platform Main 采纳说明](docs/development/platform-main-adoption.md)
 
 ## 项目角色
 

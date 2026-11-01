@@ -2,7 +2,11 @@
 
 本目录用于让开发者和 AI Coding 基于当前源码维护模板。根 README 负责快速上手，`docs/project.yaml` 保存机器可读事实，专题文档保存架构、开发、生成、运行和安全规则。
 
-本项目是组织级 [`frontend-app 1.0.0-draft`](https://github.com/g2rain/g2rain/tree/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app) 的首个试点。中央 Profile 管理同类 App 的公共规则，本目录维护模板实现、生成器、部署细节和[架构偏差](architecture/deviations.md)。正式发布后应切换到包含该 Profile 的固定架构 Tag。
+本项目是组织级 [`frontend-app 1.0.0`](https://github.com/g2rain/g2rain/tree/v1.0.2/docs/architecture/profiles/frontend-app) 的采用项目。中央 Profile 管理同类 App 的公共规则，本目录维护模板实现、生成器、部署细节和[架构偏差](architecture/deviations.md)。中央文档统一引用 Tag `v1.0.2`。
+
+## 发布记录
+
+- [v1.0.2](releases/v1.0.2.md)
 
 ## 架构
 

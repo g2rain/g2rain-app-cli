@@ -1,6 +1,6 @@
 # 层次与目录职责
 
-本页是中央 [Frontend App 层次规范](https://github.com/g2rain/g2rain/blob/feature/g2rain-architectur-init/docs/architecture/profiles/frontend-app/layers.md) 在模板源码中的具体落地；中央规则定义目标方向，本页说明实际目录和模板细节。
+本页是中央 [Frontend App 层次规范](https://github.com/g2rain/g2rain/blob/v1.0.2/docs/architecture/profiles/frontend-app/layers.md) 在模板源码中的具体落地；中央规则定义目标方向，本页说明实际目录和模板细节。
 
 ## shared
 

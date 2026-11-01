@@ -3,5 +3,5 @@
  * 子应用不需要 resource 服务（菜单由主应用管理）
  */
 
-export { sso } from './sso';
+export { sso, returnUrlKey } from './sso';
 

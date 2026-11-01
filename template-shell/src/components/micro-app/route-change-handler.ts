@@ -1,4 +1,5 @@
-import { stripActiveRule, replaceBrowserPathname } from '../../shared/url'
+import { stripActiveRule } from '../../shared/url'
+import { syncBrowserAddressForTab } from '../../platform/apps/sync-browser-url'
 import { useRuntimeStore } from '../../platform/stores/runtime.store'
 import { useWorkspaceStore } from '../../platform/stores/workspace.store'
 
@@ -74,5 +75,6 @@ function handleRouteChange(event: Event): void {
     internalPath,
   })
 
-  replaceBrowserPathname(fullPath.startsWith('/') ? fullPath : `/${fullPath}`)
+  // 地址栏统一由 syncBrowserAddressForTab 写入（带 g2shell），避免裸路径覆盖
+  syncBrowserAddressForTab(active)
 }
