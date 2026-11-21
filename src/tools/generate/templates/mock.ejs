@@ -84,6 +84,10 @@ export const <%= table.camelName %>MockDataMap: MockDataMap = {
     }
 <% }); -%>
 
+    if (query?.id !== undefined && query?.id !== null) {
+      filteredList = filteredList.filter((item: any) => item.id === Number(query.id));
+    }
+
     return createResult(filteredList);
   },
 
@@ -118,6 +122,10 @@ export const <%= table.camelName %>MockDataMap: MockDataMap = {
       });
     }
 <% }); -%>
+
+    if (query?.id !== undefined && query?.id !== null) {
+      filteredList = filteredList.filter((item: any) => item.id === Number(query.id));
+    }
 
     return createResult(filteredList);
   },

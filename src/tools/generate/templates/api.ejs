@@ -37,14 +37,13 @@ export class <%= table.camelName %>Api {
   }
 
   /**
-   * 按 ID 查询单条明细
+   * 按 ID 查询单条（走 /list，无则 null）
    * @param id <%= table.title %> ID
-   * @returns <%= table.title %>详情
+   * @returns <%= table.title %>详情，不存在时为 null
    */
-  static async getById(id: number): Promise<<%= table.camelName %>> {
-    const http = getHttpClient('default');
-    const res = await http.get<<%= table.camelName %>>(`<%= table.routePath %>/${id}`);
-    return res.data;
+  static async getById(id: number): Promise<<%= table.camelName %> | null> {
+    const list = await <%= table.camelName %>Api.list({ id });
+    return list[0] ?? null;
   }
 
   /**
